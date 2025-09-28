@@ -6,7 +6,9 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isAdmin: boolean;
   hasSubscription: boolean;
+  userToken: string | null;
   login: (userData: I_LoginResponse) => void;
+  loginWithToken: (token: string) => void;
   logout: () => void;
   loading: boolean;
 }
@@ -27,11 +29,14 @@ interface AuthProviderProps {
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<I_LoginResponse | null>(null);
+  const [userToken, setUserToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     // Check if user is logged in on app start
     const savedUser = localStorage.getItem('user');
+    const savedToken = localStorage.getItem('userToken');
+    
     if (savedUser) {
       try {
         const userData = JSON.parse(savedUser);
@@ -40,8 +45,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         console.error('Error parsing saved user data:', error);
         localStorage.removeItem('user');
         localStorage.removeItem('token');
+        localStorage.removeItem('userToken');
       }
     }
+    
+    if (savedToken) {
+      setUserToken(savedToken);
+    }
+    
     setLoading(false);
   }, []);
 
@@ -53,13 +64,28 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem('user');
-    localStorage.removeItem('token');
+  const loginWithToken = (token: string) => {
+    setUserToken(token);
+    localStorage.setItem('userToken', token);
+    // Create a minimal user object for token-based auth
+    const tokenUser: I_LoginResponse = {
+      code: 'user',
+      subscription: false,
+      token: token,
+    };
+    setUser(tokenUser);
+    localStorage.setItem('user', JSON.stringify(tokenUser));
   };
 
-  const isAuthenticated = !!user;
+  const logout = () => {
+    setUser(null);
+    setUserToken(null);
+    localStorage.removeItem('user');
+    localStorage.removeItem('token');
+    localStorage.removeItem('userToken');
+  };
+
+  const isAuthenticated = !!user || !!userToken;
   const isAdmin = user?.code === 'admin';
   const hasSubscription = user?.subscription === true;
 
@@ -68,10 +94,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     isAuthenticated,
     isAdmin,
     hasSubscription,
+    userToken,
     login,
+    loginWithToken,
     logout,
     loading,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
+

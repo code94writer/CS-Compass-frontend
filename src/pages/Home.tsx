@@ -62,11 +62,7 @@ const Home: React.FC = () => {
   ];
 
   const handleGetStarted = () => {
-    if (isAuthenticated && hasSubscription) {
-      navigate('/courses');
-    } else {
-      navigate('/login');
-    }
+    navigate('/courses');
   };
 
   return (
@@ -119,7 +115,7 @@ const Home: React.FC = () => {
                       transition: 'all 0.3s ease',
                     }}
                   >
-                    {isAuthenticated && hasSubscription ? 'View Courses' : 'Get Started'}
+                    View Courses
                   </Button>
                   <Button
                     variant="outlined"
@@ -248,7 +244,7 @@ const Home: React.FC = () => {
                 transition: 'all 0.3s ease',
               }}
             >
-              {isAuthenticated && hasSubscription ? 'Access Your Courses' : 'Sign Up Now'}
+              View Courses
             </Button>
           </Paper>
         </Container>

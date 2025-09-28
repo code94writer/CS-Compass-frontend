@@ -15,6 +15,8 @@ import {
   School as SchoolIcon,
   Upload as UploadIcon,
   Logout as LogoutIcon,
+  AdminPanelSettings as AdminIcon,
+  ShoppingCart as CartIcon,
 } from '@mui/icons-material';
 import { useAuth } from '../context/AuthContext';
 
@@ -29,9 +31,7 @@ const Navigation: React.FC = () => {
     navigate('/login');
   };
 
-  if (!isAuthenticated) {
-    return null;
-  }
+  // Show navigation for all users, but with different options
 
   return (
     <AppBar position="static" elevation={2}>
@@ -74,35 +74,68 @@ const Navigation: React.FC = () => {
           >
             {!isMobile && 'Home'}
           </Button>
-          {hasSubscription && (
+          <Button
+            component={Link}
+            to="/courses"
+            color="inherit"
+            startIcon={<SchoolIcon />}
+            sx={{ textTransform: 'none' }}
+          >
+            {!isMobile && 'Courses'}
+          </Button>
+          {isAuthenticated && (
             <Button
               component={Link}
-              to="/courses"
+              to="/my-courses"
               color="inherit"
-              startIcon={<SchoolIcon />}
+              startIcon={<CartIcon />}
               sx={{ textTransform: 'none' }}
             >
-              {!isMobile && 'Courses'}
+              {!isMobile && 'My Courses'}
             </Button>
           )}
           {isAdmin && (
+            <>
+              <Button
+                component={Link}
+                to="/admin/dashboard"
+                color="inherit"
+                startIcon={<AdminIcon />}
+                sx={{ textTransform: 'none' }}
+              >
+                {!isMobile && 'Admin'}
+              </Button>
+              <Button
+                component={Link}
+                to="/upload"
+                color="inherit"
+                startIcon={<UploadIcon />}
+                sx={{ textTransform: 'none' }}
+              >
+                {!isMobile && 'Upload'}
+              </Button>
+            </>
+          )}
+          {!isAdmin && (
             <Button
               component={Link}
-              to="/upload"
+              to="/admin"
               color="inherit"
-              startIcon={<UploadIcon />}
+              startIcon={<AdminIcon />}
               sx={{ textTransform: 'none' }}
             >
-              {!isMobile && 'Upload'}
+              {!isMobile && 'Admin Login'}
             </Button>
           )}
-          <IconButton
-            color="inherit"
-            onClick={handleLogout}
-            title="Logout"
-          >
-            <LogoutIcon />
-          </IconButton>
+          {isAuthenticated && (
+            <IconButton
+              color="inherit"
+              onClick={handleLogout}
+              title="Logout"
+            >
+              <LogoutIcon />
+            </IconButton>
+          )}
         </Box>
       </Toolbar>
     </AppBar>

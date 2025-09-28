@@ -1,5 +1,5 @@
 import AxiosInstance from './axiosInstance';
-import { I_PDF, I_UploadPDF } from '../types';
+import { I_PDF, I_UploadPDF, I_PurchasedPDF } from '../types';
 import { mockPDFs } from './mockData';
 
 export const getPDFs = async (): Promise<{ data: I_PDF[] }> => {
@@ -88,5 +88,30 @@ export const downloadPDF = async (id: string): Promise<Blob> => {
   } catch (error: any) {
     console.error('downloadPDF error', error);
     throw error;
+  }
+};
+
+// Fetch purchased PDFs for authenticated user
+export const getPurchasedPDFs = async (): Promise<{ data: I_PurchasedPDF[] }> => {
+  try {
+    const response = await AxiosInstance.get('/courses/my');
+    return response;
+  } catch (error: any) {
+    console.error('getPurchasedPDFs error', error);
+    return error?.response || { data: [] };
+  }
+};
+
+// Check if a specific PDF is purchased by the user
+export const isPDFPurchased = async (pdfId: string): Promise<boolean> => {
+  try {
+    const response = await getPurchasedPDFs();
+    if (response?.data) {
+      return response.data.some((pdf: I_PurchasedPDF) => pdf.id === pdfId);
+    }
+    return false;
+  } catch (error) {
+    console.error('isPDFPurchased error', error);
+    return false;
   }
 };

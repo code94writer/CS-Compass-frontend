@@ -11,8 +11,11 @@ import ProtectedRoute from './components/ProtectedRoute';
 import Navigation from './components/Navigation';
 import Footer from './components/Footer';
 import Login from './pages/Login';
+import AdminLogin from './pages/AdminLogin';
+import AdminDashboard from './pages/AdminDashboard';
 import Home from './pages/Home';
 import Courses from './pages/Courses';
+import MyCourses from './pages/MyCourses';
 import PDFDetail from './pages/PDFDetail';
 import Upload from './pages/Upload';
 
@@ -38,23 +41,26 @@ function App() {
             <Box component="main" sx={{ flexGrow: 1 }}>
               <Routes>
                 <Route path="/login" element={<Login />} />
+                <Route path="/admin" element={<AdminLogin />} />
+                <Route
+                  path="/admin/dashboard"
+                  element={
+                    <ProtectedRoute requireAdmin>
+                      <AdminDashboard />
+                    </ProtectedRoute>
+                  }
+                />
                 <Route path="/" element={<Home />} />
+                <Route path="/courses" element={<Courses />} />
                 <Route
-                  path="/courses"
+                  path="/my-courses"
                   element={
-                    <ProtectedRoute requireSubscription>
-                      <Courses />
+                    <ProtectedRoute>
+                      <MyCourses />
                     </ProtectedRoute>
                   }
                 />
-                <Route
-                  path="/pdf/:id"
-                  element={
-                    <ProtectedRoute requireSubscription>
-                      <PDFDetail />
-                    </ProtectedRoute>
-                  }
-                />
+                <Route path="/pdf/:id" element={<PDFDetail />} />
                 <Route
                   path="/upload"
                   element={
