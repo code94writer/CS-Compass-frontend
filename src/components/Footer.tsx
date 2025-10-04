@@ -15,6 +15,7 @@ import {
   YouTube as YouTubeIcon,
   LocationOn as LocationIcon,
   Phone as PhoneIcon,
+  Email as EmailIcon,
 } from '@mui/icons-material';
 
 const Footer: React.FC = () => {
@@ -24,17 +25,17 @@ const Footer: React.FC = () => {
   const socialLinks = [
     {
       icon: <InstagramIcon />,
-      url: 'https://instagram.com/yourcompany',
+      url: 'https://www.instagram.com/civil_services_compass/',
       label: 'Instagram',
     },
     {
       icon: <TelegramIcon />,
-      url: 'https://t.me/yourcompany',
+      url: 'https://t.me/upscandbeyondd',
       label: 'Telegram',
     },
     {
       icon: <YouTubeIcon />,
-      url: 'https://youtube.com/yourcompany',
+      url: 'https://www.youtube.com/@civilservicescompass?feature=shared',
       label: 'YouTube',
     },
   ];
@@ -84,16 +85,22 @@ const Footer: React.FC = () => {
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, justifyContent: { xs: 'center', md: 'flex-start' } }}>
                 <LocationIcon sx={{ mr: 1, fontSize: 20 }} />
                 <Typography variant="body2">
-                  123 Education Street<br />
-                  Learning City, LC 12345<br />
-                  United States
+                55, Lane-50 Dist-Ahmednagar <br />
+                 Maharashtra - 422605 <br />
+                 India
                 </Typography>
               </Box>
               
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, justifyContent: { xs: 'center', md: 'flex-start' } }}>
                 <PhoneIcon sx={{ mr: 1, fontSize: 20 }} />
                 <Typography variant="body2">
-                  +1 (555) 123-4567
+                +91 1234 567 890
+                </Typography>
+              </Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, justifyContent: { xs: 'center', md: 'flex-start' } }}>
+                <EmailIcon sx={{ mr: 1, fontSize: 20 }} />
+                <Typography variant="body2">
+                enquiry.IASCompass@gmail.com
                 </Typography>
               </Box>
             </Box>

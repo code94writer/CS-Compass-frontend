@@ -22,6 +22,7 @@ import {
 } from '@mui/icons-material';
 import { getPDFs } from '../api/pdf';
 import { I_PDF } from '../types';
+import { isApiSuccess } from '../util/helper';
 
 const Courses: React.FC = () => {
   const [pdfs, setPdfs] = useState<I_PDF[]>([]);
@@ -34,9 +35,10 @@ const Courses: React.FC = () => {
 
   const fetchPDFs = async () => {
     try {
-      const response = await getPDFs();
-      if (response?.data) {
-        setPdfs(response.data);
+      const response:any = await getPDFs();
+      if (isApiSuccess(response)) {
+        const pdfs = response.data.data
+        setPdfs(pdfs);
       } else {
         toast.error('Failed to fetch PDFs');
       }
@@ -110,7 +112,7 @@ const Courses: React.FC = () => {
         </Paper>
       ) : (
         <Grid container spacing={3}>
-          {pdfs.map((pdf) => (
+          {pdfs.map((pdf:I_PDF) => (
             <Grid item xs={12} sm={6} md={4} key={pdf.id}>
               <Card
                 sx={{
@@ -143,14 +145,14 @@ const Courses: React.FC = () => {
                       <PdfIcon sx={{ color: 'error.main', fontSize: 24 }} />
                     </Box>
                     <Chip
-                      label={new Date(pdf.uploadDate).toLocaleDateString()}
+                      label={new Date(pdf.created_at).toLocaleDateString()}
                       size="small"
                       variant="outlined"
                     />
                   </Box>
                   
                   <Typography variant="h6" component="h3" gutterBottom className="line-clamp-2">
-                    {pdf.title}
+                    {pdf.name}
                   </Typography>
                   
                   {pdf.description && (
@@ -164,9 +166,9 @@ const Courses: React.FC = () => {
                     </Typography>
                   )}
                   
-                  <Typography variant="caption" color="text.secondary">
-                    {(pdf.size / 1024 / 1024).toFixed(1)} MB
-                  </Typography>
+                  {/* <Typography variant="caption" color="text.secondary">
+                    {(pdf.price / 1024 / 1024).toFixed(1)} MB
+                  </Typography> */}
                 </CardContent>
                 
                 <CardActions>

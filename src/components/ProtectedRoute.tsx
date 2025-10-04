@@ -7,12 +7,14 @@ interface ProtectedRouteProps {
   children: React.ReactNode;
   requireAdmin?: boolean;
   requireSubscription?: boolean;
+  requireNonAdmin?: boolean;
 }
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ 
   children, 
   requireAdmin = false, 
-  requireSubscription = false 
+  requireSubscription = false,
+  requireNonAdmin = false,
 }) => {
   const { isAuthenticated, isAdmin, hasSubscription, loading } = useAuth();
   const location = useLocation();
@@ -30,16 +32,27 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     );
   }
 
-  if (!isAuthenticated) {
-    return <Navigate to="/login" state={{ from: location }} replace />;
+  // If route requires admin and user is not authenticated, send to admin login
+  if (requireAdmin && !isAuthenticated) {
+    return <Navigate to="/admin" state={{ from: location }} replace />;
+  }
+
+  // For non-admin protected content, do not send users to a regular login page.
+  // Redirect to home so pages can open OTP flows themselves.
+  if (!requireAdmin && !isAuthenticated) {
+    return <Navigate to="/" state={{ from: location }} replace />;
   }
 
   if (requireAdmin && !isAdmin) {
     return <Navigate to="/" replace />;
   }
 
+  if (requireNonAdmin && isAdmin) {
+    return <Navigate to="/" replace />;
+  }
+
   if (requireSubscription && !hasSubscription) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/" replace />;
   }
 
   return <>{children}</>;

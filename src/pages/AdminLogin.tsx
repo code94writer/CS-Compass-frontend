@@ -14,6 +14,7 @@ import {
 import { AdminPanelSettings as AdminIcon } from '@mui/icons-material';
 import { signin } from '../api/auth';
 import { useAuth } from '../context/AuthContext';
+import { I_LoginResponse } from '../types';
 
 const AdminLogin: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -42,9 +43,23 @@ const AdminLogin: React.FC = () => {
       const response = await signin(formData);
       
       if (response?.data) {
-        // Check if user is admin
-        if (response.data.code === 'admin') {
-          login(response.data);
+        // New response shape: { message, token, user: { id, email, mobile, role } }
+        const apiData: any = response.data as any;
+        const isAdmin = apiData?.user?.role === 'admin';
+
+        if (isAdmin) {
+          const userData: I_LoginResponse = {
+            code: 'admin',
+            subscription: true,
+            token: apiData.token,
+            user: {
+              id: apiData.user.id,
+              email: apiData.user.email,
+              name: apiData.user.email,
+            },
+          };
+
+          login(userData);
           toast.success('Admin login successful!');
           navigate('/admin/dashboard');
         } else {
@@ -146,18 +161,7 @@ const AdminLogin: React.FC = () => {
             </Button>
           </Box>
 
-          <Box sx={{ mt: 2, textAlign: 'center' }}>
-            <Typography variant="body2" color="text.secondary">
-              Regular users should use the{' '}
-              <Button
-                variant="text"
-                onClick={() => navigate('/login')}
-                sx={{ textTransform: 'none' }}
-              >
-                standard login
-              </Button>
-            </Typography>
-          </Box>
+          {/* Standard user login is not available; admin-only sign-in */}
         </Paper>
       </Box>
     </Container>

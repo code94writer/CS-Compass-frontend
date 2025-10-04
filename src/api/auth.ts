@@ -1,22 +1,17 @@
 import AxiosInstance from './axiosInstance';
 import { I_Signin, I_LoginResponse, I_OTPRequest, I_OTPVerify, I_OTPResponse } from '../types';
-import { mockLoginResponses } from './mockData';
+
 
 export const signin = async (data: I_Signin): Promise<{ data: I_LoginResponse }> => {
   try {
-    // For demo purposes, use mock data
-    const mockResponse = mockLoginResponses[data.email];
-    if (mockResponse) {
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      return { data: mockResponse };
-    } else {
-      throw new Error('Invalid credentials');
-    }
-    
-    // Uncomment below for real API calls
-    // const response = await AxiosInstance.post('/auth/login', data);
-    // return response;
+    // Backend expects emailOrPhone + password
+    const payload = {
+      emailOrPhone: data.email,
+      password: data.password,
+    };
+
+    const response = await AxiosInstance.post('/auth/login', payload);
+    return { data: response.data as I_LoginResponse };
   } catch (error: any) {
     console.error('signin error', error);
     return error?.response;
@@ -31,7 +26,17 @@ export const logout = () => {
 // OTP-based authentication for users
 export const sendOTP = async (data: I_OTPRequest): Promise<{ status: number; data: I_OTPResponse }> => {
   try {
-    const response = await AxiosInstance.post('/auth/send-otp', data);
+    // Normalize Indian numbers: accept 10-digit input and prefix +91
+    const normalizedMobile = (() => {
+      const digitsOnly = (data.mobile || '').replace(/\D/g, '');
+      if (digitsOnly.length === 10) return `+91${digitsOnly}`;
+      if (digitsOnly.length === 12 && digitsOnly.startsWith('91')) return `+${digitsOnly}`;
+      if (digitsOnly.startsWith('91') && digitsOnly.length > 12) return `+${digitsOnly}`;
+      if (data.mobile.startsWith('+')) return data.mobile;
+      return `+${data.mobile}`;
+    })();
+
+    const response = await AxiosInstance.post('/auth/send-otp', { mobile: normalizedMobile });
     return {
       status: response.status,
       data: response.data
@@ -47,7 +52,17 @@ export const sendOTP = async (data: I_OTPRequest): Promise<{ status: number; dat
 
 export const verifyOTP = async (data: I_OTPVerify): Promise<{ status: number; data: I_OTPResponse }> => {
   try {
-    const response = await AxiosInstance.post('/auth/verify-otp', data);
+    // Normalize Indian numbers as in sendOTP
+    const normalizedMobile = (() => {
+      const digitsOnly = (data.mobile || '').replace(/\D/g, '');
+      if (digitsOnly.length === 10) return `+91${digitsOnly}`;
+      if (digitsOnly.length === 12 && digitsOnly.startsWith('91')) return `+${digitsOnly}`;
+      if (digitsOnly.startsWith('91') && digitsOnly.length > 12) return `+${digitsOnly}`;
+      if (data.mobile.startsWith('+')) return data.mobile;
+      return `+${data.mobile}`;
+    })();
+
+    const response = await AxiosInstance.post('/auth/verify-otp', { ...data, mobile: normalizedMobile });
     return {
       status: response.status,
       data: response.data

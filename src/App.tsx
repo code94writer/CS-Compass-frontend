@@ -10,7 +10,6 @@ import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Navigation from './components/Navigation';
 import Footer from './components/Footer';
-import Login from './pages/Login';
 import AdminLogin from './pages/AdminLogin';
 import AdminDashboard from './pages/AdminDashboard';
 import Home from './pages/Home';
@@ -40,7 +39,6 @@ function App() {
             <Navigation />
             <Box component="main" sx={{ flexGrow: 1 }}>
               <Routes>
-                <Route path="/login" element={<Login />} />
                 <Route path="/admin" element={<AdminLogin />} />
                 <Route
                   path="/admin/dashboard"
@@ -55,7 +53,7 @@ function App() {
                 <Route
                   path="/my-courses"
                   element={
-                    <ProtectedRoute>
+                    <ProtectedRoute requireNonAdmin requireSubscription>
                       <MyCourses />
                     </ProtectedRoute>
                   }

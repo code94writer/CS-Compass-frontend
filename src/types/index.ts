@@ -15,12 +15,12 @@ export interface I_LoginResponse {
 }
 
 export interface I_PDF {
-  id: string;
-  title: string;
-  description?: string;
-  url: string;
-  uploadDate: string;
-  size: number;
+    id: string;
+    name: string;
+    description: string;
+    url: string;
+    created_at: string;
+    price: number;
 }
 
 export interface I_UploadPDF {

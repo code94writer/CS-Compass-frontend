@@ -23,7 +23,7 @@ import { useAuth } from '../context/AuthContext';
 interface OTPLoginProps {
   open: boolean;
   onClose: () => void;
-  onSuccess: (token: string) => void;
+  onSuccess: (token: string, mobile: string) => void;
   pdfTitle?: string;
 }
 
@@ -59,8 +59,10 @@ const OTPLogin: React.FC<OTPLoginProps> = ({ open, onClose, onSuccess, pdfTitle 
       return;
     }
 
-    if (!/^\+?[1-9]\d{1,14}$/.test(mobile.replace(/\s/g, ''))) {
-      setError('Please enter a valid mobile number');
+    // Accept Indian 10-digit numbers; UI only requires 10 digits
+    const digitsOnly = mobile.replace(/\D/g, '');
+    if (digitsOnly.length !== 10) {
+      setError('Enter a 10-digit Indian mobile number');
       return;
     }
 
@@ -69,7 +71,7 @@ const OTPLogin: React.FC<OTPLoginProps> = ({ open, onClose, onSuccess, pdfTitle 
 
     try {
       const requestData: I_OTPRequest = {
-        mobile: mobile.startsWith('+') ? mobile : `+${mobile}`,
+        mobile: digitsOnly, // backend layer will add +91
       };
 
       const response = await sendOTP(requestData);
@@ -112,7 +114,7 @@ const OTPLogin: React.FC<OTPLoginProps> = ({ open, onClose, onSuccess, pdfTitle 
 
     try {
       const requestData: I_OTPVerify = {
-        mobile: mobile.startsWith('+') ? mobile : `+${mobile}`,
+        mobile: mobile.replace(/\D/g, ''), // backend layer will add +91
         code: otp,
       };
 
@@ -131,7 +133,8 @@ const OTPLogin: React.FC<OTPLoginProps> = ({ open, onClose, onSuccess, pdfTitle 
           // Login with token
           loginWithToken(token);
           toast.success('Login successful!');
-          onSuccess(token);
+          const mobileDigits = mobile.replace(/\D/g, '');
+          onSuccess(token, mobileDigits);
           handleClose();
         } else {
           setError('No token received from server');
@@ -201,8 +204,8 @@ const OTPLogin: React.FC<OTPLoginProps> = ({ open, onClose, onSuccess, pdfTitle 
               fullWidth
               label="Mobile Number"
               value={mobile}
-              onChange={(e) => setMobile(e.target.value)}
-              placeholder="+1234567890"
+              onChange={(e) => setMobile(e.target.value.replace(/\D/g, '').slice(0, 10))}
+              placeholder="10-digit mobile number"
               disabled={loading}
               InputProps={{
                 startAdornment: <PhoneIcon sx={{ mr: 1, color: 'text.secondary' }} />,

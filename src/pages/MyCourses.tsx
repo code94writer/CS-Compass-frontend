@@ -36,7 +36,7 @@ const MyCourses: React.FC = () => {
     if (isAuthenticated) {
       fetchPurchasedPDFs();
     } else {
-      navigate('/login');
+      navigate('/');
     }
   }, [isAuthenticated, navigate]);
 
@@ -44,7 +44,7 @@ const MyCourses: React.FC = () => {
     try {
       const response = await getPurchasedPDFs();
       if (response?.data) {
-        setPurchasedPDFs(response.data);
+        setPurchasedPDFs([]);
       } else {
         toast.error('Failed to fetch purchased PDFs');
       }
@@ -128,7 +128,7 @@ const MyCourses: React.FC = () => {
         </Typography>
       </Box>
 
-      {purchasedPDFs.length === 0 ? (
+      {purchasedPDFs?.length === 0 ? (
         <Paper elevation={1} sx={{ p: 6, textAlign: 'center' }}>
           <Box sx={{ mb: 3 }}>
             <CartIcon sx={{ fontSize: 64, color: 'text.secondary' }} />
@@ -149,7 +149,8 @@ const MyCourses: React.FC = () => {
         </Paper>
       ) : (
         <Grid container spacing={3}>
-          {purchasedPDFs.map((pdf) => (
+
+          {purchasedPDFs?.map((pdf) => (
             <Grid item xs={12} sm={6} md={4} key={pdf.id}>
               <Card
                 sx={{

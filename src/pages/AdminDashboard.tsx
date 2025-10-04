@@ -25,6 +25,7 @@ import {
 } from '@mui/icons-material';
 import { getPDFs } from '../api/pdf';
 import { I_PDF } from '../types';
+import { isApiSuccess } from '../util/helper';
 
 const AdminDashboard: React.FC = () => {
   const [pdfs, setPdfs] = useState<I_PDF[]>([]);
@@ -37,9 +38,9 @@ const AdminDashboard: React.FC = () => {
 
   const fetchPDFs = async () => {
     try {
-      const response = await getPDFs();
-      if (response?.data) {
-        setPdfs(response.data);
+      const response:any = await getPDFs();
+      if ( isApiSuccess(response) ) {
+        setPdfs(response.data.data);
       } else {
         toast.error('Failed to fetch PDFs');
       }
@@ -239,14 +240,14 @@ const AdminDashboard: React.FC = () => {
                         <PdfIcon sx={{ color: 'error.main', fontSize: 24 }} />
                       </Box>
                       <Chip
-                        label={new Date(pdf.uploadDate).toLocaleDateString()}
+                        label={new Date(pdf.created_at).toLocaleDateString()}
                         size="small"
                         variant="outlined"
                       />
                     </Box>
                     
                     <Typography variant="h6" component="h3" gutterBottom className="line-clamp-2">
-                      {pdf.title}
+                      {pdf.name}
                     </Typography>
                     
                     {pdf.description && (
@@ -261,7 +262,7 @@ const AdminDashboard: React.FC = () => {
                     )}
                     
                     <Typography variant="caption" color="text.secondary">
-                      {(pdf.size / 1024 / 1024).toFixed(1)} MB
+                      {/* {(pdf.size / 1024 / 1024).toFixed(1)} MB */}
                     </Typography>
                   </CardContent>
                   

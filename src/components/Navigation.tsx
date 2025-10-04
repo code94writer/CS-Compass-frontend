@@ -28,7 +28,7 @@ const Navigation: React.FC = () => {
 
   const handleLogout = () => {
     logout();
-    navigate('/login');
+    navigate('/');
   };
 
   // Show navigation for all users, but with different options
@@ -83,7 +83,7 @@ const Navigation: React.FC = () => {
           >
             {!isMobile && 'Courses'}
           </Button>
-          {isAuthenticated && (
+          {isAuthenticated && !isAdmin && hasSubscription && (
             <Button
               component={Link}
               to="/my-courses"
@@ -116,7 +116,7 @@ const Navigation: React.FC = () => {
               </Button>
             </>
           )}
-          {!isAdmin && (
+          {/* {!isAdmin && (
             <Button
               component={Link}
               to="/admin"
@@ -126,7 +126,7 @@ const Navigation: React.FC = () => {
             >
               {!isMobile && 'Admin Login'}
             </Button>
-          )}
+          )} */}
           {isAuthenticated && (
             <IconButton
               color="inherit"

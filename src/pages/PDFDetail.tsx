@@ -13,12 +13,6 @@ import {
   CardContent,
   Chip,
   IconButton,
-  TextField,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Alert,
 } from '@mui/material';
 import {
   PictureAsPdf as PdfIcon,
@@ -26,28 +20,22 @@ import {
   ArrowBack as ArrowBackIcon,
   Close as CloseIcon,
   ShoppingCart as CartIcon,
-  Payment as PaymentIcon,
 } from '@mui/icons-material';
 import { getPDFById, downloadPDF, isPDFPurchased } from '../api/pdf';
 import { I_PDF, I_PaymentRequest } from '../types';
 import OTPLogin from '../components/OTPLogin';
 import { processPayment } from '../api/payment';
 import { useAuth } from '../context/AuthContext';
+import { isApiSuccess } from '../util/helper';
 
 const PDFDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { userToken, isAuthenticated } = useAuth();
+  const { userToken, isAuthenticated, isAdmin } = useAuth();
   const [pdf, setPdf] = useState<I_PDF | null>(null);
   const [loading, setLoading] = useState(true);
   const [downloading, setDownloading] = useState(false);
   const [showOTPLogin, setShowOTPLogin] = useState(false);
-  const [showPaymentDialog, setShowPaymentDialog] = useState(false);
-  const [customerInfo, setCustomerInfo] = useState({
-    name: '',
-    email: '',
-    mobile: '',
-  });
   const [processingPayment, setProcessingPayment] = useState(false);
   const [purchased, setPurchased] = useState(false);
   const [checkingPurchase, setCheckingPurchase] = useState(false);
@@ -66,9 +54,9 @@ const PDFDetail: React.FC = () => {
 
   const fetchPDF = async () => {
     try {
-      const response = await getPDFById(id!);
-      if (response?.data) {
-        setPdf(response.data);
+      const response:any = await getPDFById(id!);
+      if (isApiSuccess(response)) {
+        setPdf(response.data.data);
       } else {
         toast.error('Failed to fetch PDF details');
         navigate('/');
@@ -111,7 +99,7 @@ const PDFDetail: React.FC = () => {
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `${pdf.title}.pdf`;
+      link.download = `${pdf.name}.pdf`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -129,39 +117,37 @@ const PDFDetail: React.FC = () => {
     setShowOTPLogin(true);
   };
 
-  const handleOTPSuccess = (token: string) => {
+  const handleOTPSuccess = (token: string, mobile: string) => {
     setShowOTPLogin(false);
-    setShowPaymentDialog(true);
+    // Immediately start Razorpay payment with minimal required info
+    startPaymentWithMobile(mobile);
   };
 
-  const handlePayment = async () => {
+  const startPaymentWithMobile = async (mobile: string) => {
     if (!pdf) return;
-
-    if (!customerInfo.name || !customerInfo.email || !customerInfo.mobile) {
-      toast.error('Please fill in all customer details');
-      return;
-    }
 
     setProcessingPayment(true);
 
+    // Minimal prefill: use mobile; synthesize name/email for Razorpay prefill
+    const customerName = 'Customer';
+    const customerEmail = `user_${mobile}@example.com`;
+
     const paymentData: I_PaymentRequest = {
-      amount: 99, // Fixed price for demo
+      amount: 99,
       currency: 'INR',
       orderId: `order_${Date.now()}`,
       customerId: `customer_${Date.now()}`,
-      customerName: customerInfo.name,
-      customerEmail: customerInfo.email,
-      customerMobile: customerInfo.mobile,
+      customerName,
+      customerEmail,
+      customerMobile: mobile,
     };
 
     try {
       await processPayment(
         paymentData,
-        async (paymentId) => {
+        async () => {
           setPurchased(true);
-          setShowPaymentDialog(false);
           toast.success('Payment successful! You can now download the PDF.');
-          // Refresh purchase status
           await checkIfPurchased();
         },
         (error) => {
@@ -176,12 +162,7 @@ const PDFDetail: React.FC = () => {
     }
   };
 
-  const handleCustomerInfoChange = (field: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
-    setCustomerInfo(prev => ({
-      ...prev,
-      [field]: e.target.value,
-    }));
-  };
+  // No customer info form: payment starts directly after OTP verification
 
   if (loading) {
     return (
@@ -237,10 +218,10 @@ const PDFDetail: React.FC = () => {
             </Box>
             <Box>
               <Typography variant="h3" component="h1" gutterBottom>
-                {pdf.title}
+                {pdf.name}
               </Typography>
               <Chip
-                label={`Uploaded on ${new Date(pdf.uploadDate).toLocaleDateString()}`}
+                label={`Uploaded on ${new Date(pdf.created_at).toLocaleDateString()}`}
                 variant="outlined"
                 color="primary"
               />
@@ -279,7 +260,7 @@ const PDFDetail: React.FC = () => {
                       File Size:
                     </Typography>
                     <Typography variant="body2" fontWeight="medium">
-                      {(pdf.size / 1024 / 1024).toFixed(1)} MB
+                     0 MB
                     </Typography>
                   </Box>
                   <Box display="flex" justifyContent="space-between">
@@ -287,7 +268,7 @@ const PDFDetail: React.FC = () => {
                       Upload Date:
                     </Typography>
                     <Typography variant="body2" fontWeight="medium">
-                      {new Date(pdf.uploadDate).toLocaleDateString()}
+                      {new Date(pdf.created_at).toLocaleDateString()}
                     </Typography>
                   </Box>
                   <Box display="flex" justifyContent="space-between">
@@ -307,7 +288,7 @@ const PDFDetail: React.FC = () => {
             <Card variant="outlined">
               <CardContent>
                 <Typography variant="h6" component="h3" gutterBottom>
-                  {checkingPurchase ? 'Checking...' : purchased ? 'Download' : 'Purchase'}
+                  {checkingPurchase ? 'Checking...' : purchased ? 'Download' : isAdmin ? 'Admin' : 'Purchase'}
                 </Typography>
                 {checkingPurchase ? (
                   <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 4 }}>
@@ -330,30 +311,35 @@ const PDFDetail: React.FC = () => {
                   </Button>
                 ) : (
                   <Box>
-                    <Box sx={{ mb: 2, p: 2, bgcolor: 'grey.50', borderRadius: 1 }}>
-                      <Typography variant="h5" component="div" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
-                        ₹99
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        One-time purchase
-                      </Typography>
-                    </Box>
-                    <Button
-                      variant="contained"
-                      fullWidth
-                      size="large"
-                      startIcon={<CartIcon />}
-                      onClick={handlePurchase}
-                      sx={{ mt: 2 }}
-                    >
-                      Purchase PDF
-                    </Button>
-                    <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block', textAlign: 'center' }}>
-                      Secure payment with OTP verification
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary" sx={{ mt: 2, textAlign: 'center', fontStyle: 'italic' }}>
-                      Purchase required to download this PDF
-                    </Typography>
+                    {/* Hide purchase option for admins */}
+                    {!isAdmin && (
+                      <>
+                        <Box sx={{ mb: 2, p: 2, bgcolor: 'grey.50', borderRadius: 1 }}>
+                          <Typography variant="h5" component="div" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
+                            ₹99
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary">
+                            One-time purchase
+                          </Typography>
+                        </Box>
+                        <Button
+                          variant="contained"
+                          fullWidth
+                          size="large"
+                          startIcon={<CartIcon />}
+                          onClick={handlePurchase}
+                          sx={{ mt: 2 }}
+                        >
+                          Purchase PDF
+                        </Button>
+                        <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block', textAlign: 'center' }}>
+                          Secure payment with OTP verification
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary" sx={{ mt: 2, textAlign: 'center', fontStyle: 'italic' }}>
+                          Purchase required to download this PDF
+                        </Typography>
+                      </>
+                    )}
                   </Box>
                 )}
               </CardContent>
@@ -372,90 +358,15 @@ const PDFDetail: React.FC = () => {
         </Box>
       </Paper>
 
-      {/* OTP Login Dialog */}
+      {/* OTP Login Dialog */
+      }
       <OTPLogin
         open={showOTPLogin}
         onClose={() => setShowOTPLogin(false)}
         onSuccess={handleOTPSuccess}
-        pdfTitle={pdf?.title}
+        pdfTitle={pdf?.name}
       />
-
-      {/* Payment Dialog */}
-      <Dialog
-        open={showPaymentDialog}
-        onClose={() => setShowPaymentDialog(false)}
-        maxWidth="sm"
-        fullWidth
-        PaperProps={{
-          sx: { borderRadius: 2 }
-        }}
-      >
-        <DialogTitle>
-          <Box display="flex" alignItems="center" gap={1}>
-            <PaymentIcon color="primary" />
-            <Typography variant="h6" component="div">
-              Complete Your Purchase
-            </Typography>
-          </Box>
-        </DialogTitle>
-
-        <DialogContent>
-          <Box sx={{ mb: 3 }}>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-              Please provide your details to complete the payment
-            </Typography>
-            
-            <TextField
-              fullWidth
-              label="Full Name"
-              value={customerInfo.name}
-              onChange={handleCustomerInfoChange('name')}
-              margin="normal"
-              required
-            />
-            
-            <TextField
-              fullWidth
-              label="Email Address"
-              type="email"
-              value={customerInfo.email}
-              onChange={handleCustomerInfoChange('email')}
-              margin="normal"
-              required
-            />
-            
-            <TextField
-              fullWidth
-              label="Mobile Number"
-              value={customerInfo.mobile}
-              onChange={handleCustomerInfoChange('mobile')}
-              margin="normal"
-              required
-            />
-
-            <Alert severity="info" sx={{ mt: 2 }}>
-              <Typography variant="body2">
-                <strong>Price:</strong> ₹99<br />
-                <strong>Payment:</strong> Secure payment via Razorpay
-              </Typography>
-            </Alert>
-          </Box>
-        </DialogContent>
-
-        <DialogActions sx={{ p: 3, pt: 1 }}>
-          <Button onClick={() => setShowPaymentDialog(false)} disabled={processingPayment}>
-            Cancel
-          </Button>
-          <Button
-            onClick={handlePayment}
-            variant="contained"
-            disabled={processingPayment || !customerInfo.name || !customerInfo.email || !customerInfo.mobile}
-            startIcon={processingPayment ? <CircularProgress size={20} /> : <PaymentIcon />}
-          >
-            {processingPayment ? 'Processing...' : 'Pay ₹99'}
-          </Button>
-        </DialogActions>
-      </Dialog>
+      {/* Payment dialog removed: we start Razorpay immediately after OTP success */}
     </Container>
   );
 };
