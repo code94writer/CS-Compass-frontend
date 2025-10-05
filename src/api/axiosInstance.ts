@@ -11,7 +11,8 @@ const AxiosInstance = axios.create({
 // Request interceptor to add auth token
 AxiosInstance.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token');
+    // Support both admin token ('token') and OTP token ('userToken')
+    const token = localStorage.getItem('token') || localStorage.getItem('userToken');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -29,7 +30,8 @@ AxiosInstance.interceptors.response.use(
     if (error.response?.status === 401) {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
-      window.location.href = '/';
+      localStorage.removeItem('userToken');
+      // Do not hard redirect here; let route guards/pages decide navigation to avoid full reloads
     }
     return Promise.reject(error);
   }

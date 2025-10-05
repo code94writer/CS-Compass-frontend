@@ -110,21 +110,18 @@ const OTPLogin: React.FC<OTPLoginProps> = ({ open, onClose, onSuccess, pdfTitle 
     }
 
     setLoading(true);
-    setError('');
-
     try {
       const requestData: I_OTPVerify = {
         mobile: mobile.replace(/\D/g, ''), // backend layer will add +91
         code: otp,
       };
-
       const response = await verifyOTP(requestData);
-      
+
       // Debug logging
       console.log('Verify OTP Response:', response);
       console.log('Status:', response?.status);
       console.log('Data:', response?.data);
-      
+
       // Check for status code 200 - if API returns 200, consider it successful
       if (response?.status === 200) {
         // Try to get token from different possible locations
@@ -134,6 +131,10 @@ const OTPLogin: React.FC<OTPLoginProps> = ({ open, onClose, onSuccess, pdfTitle 
           loginWithToken(token);
           toast.success('Login successful!');
           const mobileDigits = mobile.replace(/\D/g, '');
+          // Persist mobile for future payments to skip OTP modal
+          try {
+            localStorage.setItem('userMobile', mobileDigits);
+          } catch {}
           onSuccess(token, mobileDigits);
           handleClose();
         } else {

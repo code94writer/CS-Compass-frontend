@@ -83,7 +83,7 @@ const Navigation: React.FC = () => {
           >
             {!isMobile && 'Courses'}
           </Button>
-          {isAuthenticated && !isAdmin && hasSubscription && (
+          {isAuthenticated && !isAdmin && (
             <Button
               component={Link}
               to="/my-courses"

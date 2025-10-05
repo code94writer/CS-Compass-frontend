@@ -44,7 +44,13 @@ const MyCourses: React.FC = () => {
     try {
       const response = await getPurchasedPDFs();
       if (response?.data) {
-        setPurchasedPDFs([]);
+        const payload = (response as any).data;
+        const items = Array.isArray(payload)
+          ? payload
+          : Array.isArray(payload?.data)
+          ? payload.data
+          : [];
+        setPurchasedPDFs(items as any);
       } else {
         toast.error('Failed to fetch purchased PDFs');
       }

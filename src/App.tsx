@@ -53,7 +53,7 @@ function App() {
                 <Route
                   path="/my-courses"
                   element={
-                    <ProtectedRoute requireNonAdmin requireSubscription>
+                    <ProtectedRoute requireNonAdmin>
                       <MyCourses />
                     </ProtectedRoute>
                   }

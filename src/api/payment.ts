@@ -112,6 +112,22 @@ export const processPayment = async (
   }
 };
 
+// Record a purchased course (after payment success)
+export const purchaseCourse = async (payload: {
+  courseId: string;
+  amount: number;
+  paymentId: string;
+  expiryDate: string;
+}) => {
+  try {
+    const response = await AxiosInstance.post('/courses/purchase', payload);
+    return response?.data;
+  } catch (error) {
+    console.error('Purchase course error:', error);
+    throw error;
+  }
+};
+
 // Declare Razorpay type for TypeScript
 declare global {
   interface Window {

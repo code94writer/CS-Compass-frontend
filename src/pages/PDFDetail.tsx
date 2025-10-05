@@ -24,7 +24,7 @@ import {
 import { getPDFById, downloadPDF, isPDFPurchased } from '../api/pdf';
 import { I_PDF, I_PaymentRequest } from '../types';
 import OTPLogin from '../components/OTPLogin';
-import { processPayment } from '../api/payment';
+import { purchaseCourse } from '../api/payment';
 import { useAuth } from '../context/AuthContext';
 import { isApiSuccess } from '../util/helper';
 
@@ -114,6 +114,15 @@ const PDFDetail: React.FC = () => {
   };
 
   const handlePurchase = () => {
+    // If already authenticated (OTP or admin but not admin purchase), go straight to payment
+    try {
+      const storedMobile = localStorage.getItem('userMobile') || '';
+      if (isAuthenticated && !isAdmin) {
+        // Proceed even if mobile isn't stored; payment prefill will still work with minimal info
+        startPaymentWithMobile(storedMobile);
+        return;
+      }
+    } catch {}
     setShowOTPLogin(true);
   };
 
@@ -143,20 +152,21 @@ const PDFDetail: React.FC = () => {
     };
 
     try {
-      await processPayment(
-        paymentData,
-        async () => {
-          setPurchased(true);
-          toast.success('Payment successful! You can now download the PDF.');
-          await checkIfPurchased();
-        },
-        (error) => {
-          toast.error(error);
-        }
-      );
+      // Directly call purchase without creating a payment order (temporary flow)
+      const paymentId = `manual_${Date.now()}`;
+      const expiryDate = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString();
+      await purchaseCourse({
+        courseId: pdf.id,
+        amount: paymentData.amount,
+        paymentId,
+        expiryDate,
+      });
+      setPurchased(true);
+      toast.success('Purchase recorded successfully. You can now download the PDF.');
+      await checkIfPurchased();
     } catch (error) {
-      console.error('Payment error:', error);
-      toast.error('Payment failed. Please try again.');
+      console.error('Purchase error:', error);
+      toast.error('Failed to complete purchase. Please try again.');
     } finally {
       setProcessingPayment(false);
     }
@@ -346,6 +356,44 @@ const PDFDetail: React.FC = () => {
             </Card>
           </Grid>
         </Grid>
+
+        {/* List PDFs belonging to this course, if provided by API as pdf.pdfs */}
+        {Array.isArray((pdf as any).pdfs) && (pdf as any).pdfs.length > 0 && (
+          <Box mb={4}>
+            <Typography variant="h5" component="h2" gutterBottom>
+              Course PDFs
+            </Typography>
+            <Grid container spacing={2}>
+              {(pdf as any).pdfs.map((item: any) => (
+                <Grid item xs={12} md={6} key={item.id}>
+                  <Card variant="outlined">
+                    <CardContent>
+                      <Box display="flex" alignItems="center" mb={1}>
+                        <PdfIcon sx={{ color: 'error.main', mr: 1 }} />
+                        <Typography variant="h6">{item.title || item.name}</Typography>
+                      </Box>
+                      {item.description && (
+                        <Typography variant="body2" color="text.secondary">
+                          {item.description}
+                        </Typography>
+                      )}
+                      {item.file_size && (
+                        <Typography variant="caption" color="text.secondary" display="block" sx={{ mt: 1 }}>
+                          Size: {Number(item.file_size) > 0 ? `${(Number(item.file_size) / (1024 * 1024)).toFixed(2)} MB` : '—'}
+                        </Typography>
+                      )}
+                      {item.created_at && (
+                        <Typography variant="caption" color="text.secondary" display="block">
+                          Uploaded: {new Date(item.created_at).toLocaleDateString()}
+                        </Typography>
+                      )}
+                    </CardContent>
+                  </Card>
+                </Grid>
+              ))}
+            </Grid>
+          </Box>
+        )}
 
         <Box display="flex" justifyContent="flex-start">
           <Button
