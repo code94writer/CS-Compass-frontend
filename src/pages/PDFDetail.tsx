@@ -22,9 +22,9 @@ import {
   ShoppingCart as CartIcon,
 } from '@mui/icons-material';
 import { getPDFById, downloadPDF, isPDFPurchased } from '../api/pdf';
-import { I_PDF, I_PaymentRequest } from '../types';
+import { I_PDF } from '../types';
 import OTPLogin from '../components/OTPLogin';
-import { purchaseCourse } from '../api/payment';
+import { processPayUPayment } from '../api/payment';
 import { useAuth } from '../context/AuthContext';
 import { isApiSuccess } from '../util/helper';
 
@@ -137,37 +137,28 @@ const PDFDetail: React.FC = () => {
 
     setProcessingPayment(true);
 
-    // Minimal prefill: use mobile; synthesize name/email for Razorpay prefill
-    const customerName = 'Customer';
-    const customerEmail = `user_${mobile}@example.com`;
-
-    const paymentData: I_PaymentRequest = {
-      amount: 99,
-      currency: 'INR',
-      orderId: `order_${Date.now()}`,
-      customerId: `customer_${Date.now()}`,
-      customerName,
-      customerEmail,
-      customerMobile: mobile,
-    };
-
     try {
-      // Directly call purchase without creating a payment order (temporary flow)
-      const paymentId = `manual_${Date.now()}`;
-      const expiryDate = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString();
-      await purchaseCourse({
-        courseId: pdf.id,
-        amount: paymentData.amount,
-        paymentId,
-        expiryDate,
-      });
-      setPurchased(true);
-      toast.success('Purchase recorded successfully. You can now download the PDF.');
-      await checkIfPurchased();
+      // Store course ID for payment callback pages
+      localStorage.setItem('currentCourseId', pdf.id);
+
+      // Process PayU payment
+      await processPayUPayment(
+        pdf.id,
+        (transactionId: string) => {
+          // Payment initiated successfully - user will be redirected to PayU
+          toast.success('Redirecting to payment gateway...');
+          console.log('Payment initiated with transaction ID:', transactionId);
+        },
+        (error: string) => {
+          // Payment initiation failed
+          console.error('Payment initiation error:', error);
+          toast.error(error || 'Failed to initiate payment. Please try again.');
+          setProcessingPayment(false);
+        }
+      );
     } catch (error) {
-      console.error('Purchase error:', error);
-      toast.error('Failed to complete purchase. Please try again.');
-    } finally {
+      console.error('Payment processing error:', error);
+      toast.error('Failed to process payment. Please try again.');
       setProcessingPayment(false);
     }
   };

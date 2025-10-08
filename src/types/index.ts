@@ -53,6 +53,48 @@ export interface I_PaymentRequest {
   customerMobile: string;
 }
 
+// PayU Payment Interfaces
+export interface I_PayUPaymentParams {
+  txnid: string;
+  amount: string;
+  productinfo: string;
+  firstname: string;
+  email: string;
+  phone: string;
+  surl: string;
+  furl: string;
+  curl: string;
+  udf1: string;
+  udf2: string;
+  hash: string;
+}
+
+export interface I_PayUCourse {
+  id: string;
+  name: string;
+  price: string;
+  discount: string;
+  finalAmount: number;
+}
+
+export interface I_PayUInitiateResponse {
+  success: boolean;
+  message: string;
+  data: {
+    transactionId: string;
+    paymentUrl: string;
+    paymentParams: I_PayUPaymentParams;
+    merchantKey: string;
+    course: I_PayUCourse;
+  };
+  timestamp: string;
+  status: number;
+}
+
+export interface I_PayUInitiateRequest {
+  courseId: string;
+}
+
 export interface I_PurchasedPDF {
   id: string;
   title: string;

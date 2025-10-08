@@ -17,6 +17,9 @@ import Courses from './pages/Courses';
 import MyCourses from './pages/MyCourses';
 import PDFDetail from './pages/PDFDetail';
 import Upload from './pages/Upload';
+import PaymentSuccess from './pages/PaymentSuccess';
+import PaymentFailure from './pages/PaymentFailure';
+import PaymentCancel from './pages/PaymentCancel';
 
 const theme = createTheme({
   palette: {
@@ -67,6 +70,10 @@ function App() {
                     </ProtectedRoute>
                   }
                 />
+                {/* Payment callback routes */}
+                <Route path="/payment/success" element={<PaymentSuccess />} />
+                <Route path="/payment/failure" element={<PaymentFailure />} />
+                <Route path="/payment/cancel" element={<PaymentCancel />} />
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
             </Box>

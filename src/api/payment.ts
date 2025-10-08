@@ -1,118 +1,107 @@
 import AxiosInstance from './axiosInstance';
-import { I_PaymentRequest } from '../types';
+import { I_PaymentRequest, I_PayUInitiateRequest, I_PayUInitiateResponse } from '../types';
 
-// Razorpay configuration
-export const RAZORPAY_KEY_ID = process.env.REACT_APP_RAZORPAY_KEY_ID || 'rzp_test_1234567890';
+// PayU Payment Processing
 
-// Load Razorpay script dynamically
-export const loadRazorpayScript = (): Promise<boolean> => {
-  return new Promise((resolve) => {
-    if (window.Razorpay) {
-      resolve(true);
-      return;
-    }
-
-    const script = document.createElement('script');
-    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
-    script.onload = () => resolve(true);
-    script.onerror = () => resolve(false);
-    document.body.appendChild(script);
-  });
-};
-
-// Create Razorpay order
-export const createRazorpayOrder = async (paymentData: I_PaymentRequest) => {
-  try {
-    const response = await AxiosInstance.post('/payment/create-order', paymentData);
-    return response.data;
-  } catch (error) {
-    console.error('Create order error:', error);
-    throw error;
-  }
-};
-
-// Verify payment
-export const verifyPayment = async (paymentData: {
-  razorpay_order_id: string;
-  razorpay_payment_id: string;
-  razorpay_signature: string;
-}) => {
-  try {
-    const response = await AxiosInstance.post('/payment/verify', paymentData);
-    return response.data;
-  } catch (error) {
-    console.error('Verify payment error:', error);
-    throw error;
-  }
-};
-
-// Process payment with Razorpay
-export const processPayment = async (
-  paymentData: I_PaymentRequest,
-  onSuccess: (paymentId: string) => void,
+// Process payment with PayU
+export const processPayUPayment = async (
+  courseId: string,
+  onSuccess: (transactionId: string) => void,
   onError: (error: string) => void
 ) => {
   try {
-    // Load Razorpay script
-    const scriptLoaded = await loadRazorpayScript();
-    if (!scriptLoaded) {
-      onError('Failed to load payment gateway');
-      return;
+    // Initiate payment with backend
+    const response = await initiatePayUPayment({ courseId });
+
+    if (response.success && response.data) {
+      const { paymentUrl, paymentParams, merchantKey, transactionId } = response.data;
+
+      // Store transaction ID for success callback
+      localStorage.setItem('currentTransactionId', transactionId);
+
+      // Submit form to PayU
+      submitPayUForm(paymentUrl, paymentParams, merchantKey);
+
+      // Call success callback with transaction ID
+      onSuccess(transactionId);
+    } else {
+      onError(response.message || 'Failed to initiate payment');
     }
-
-    // Create order
-    const order = await createRazorpayOrder(paymentData);
-
-    const options = {
-      key: RAZORPAY_KEY_ID,
-      amount: paymentData.amount * 100, // Convert to paise
-      currency: paymentData.currency,
-      name: 'Course PDF App',
-      description: `Purchase: ${paymentData.customerName}`,
-      order_id: order.id,
-      prefill: {
-        name: paymentData.customerName,
-        email: paymentData.customerEmail,
-        contact: paymentData.customerMobile,
-      },
-      theme: {
-        color: '#1976d2',
-      },
-      handler: async (response: any) => {
-        try {
-          // Verify payment
-          const verification = await verifyPayment({
-            razorpay_order_id: response.razorpay_order_id,
-            razorpay_payment_id: response.razorpay_payment_id,
-            razorpay_signature: response.razorpay_signature,
-          });
-
-          if (verification.success) {
-            onSuccess(response.razorpay_payment_id);
-          } else {
-            onError('Payment verification failed');
-          }
-        } catch (error) {
-          console.error('Payment verification error:', error);
-          onError('Payment verification failed');
-        }
-      },
-      modal: {
-        ondismiss: () => {
-          onError('Payment cancelled');
-        },
-      },
-    };
-
-    const razorpay = new (window as any).Razorpay(options);
-    razorpay.open();
-  } catch (error) {
-    console.error('Payment processing error:', error);
-    onError('Failed to process payment');
+  } catch (error: any) {
+    console.error('PayU payment processing error:', error);
+    onError(error?.response?.data?.message || 'Failed to process payment');
   }
 };
 
-// Record a purchased course (after payment success)
+// PayU Payment Integration
+
+// Initiate PayU payment
+export const initiatePayUPayment = async (payload: I_PayUInitiateRequest): Promise<I_PayUInitiateResponse> => {
+  try {
+    const response = await AxiosInstance.post('/courses/payment/initiate', payload);
+    return response.data;
+  } catch (error) {
+    console.error('Initiate PayU payment error:', error);
+    throw error;
+  }
+};
+
+// Create and submit PayU payment form
+export const submitPayUForm = (paymentUrl: string, paymentParams: any, merchantKey: string) => {
+  try {
+    // Validate required parameters
+    if (!paymentUrl || !paymentParams || !merchantKey) {
+      throw new Error('Missing required payment parameters');
+    }
+
+    // Create a form element
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = paymentUrl;
+    form.style.display = 'none';
+    form.target = '_self'; // Ensure form submits in the same window
+
+    // Add all payment parameters as hidden inputs
+    const params = { ...paymentParams, key: merchantKey };
+
+    // Required PayU parameters
+    const requiredParams = ['txnid', 'amount', 'productinfo', 'firstname', 'email', 'phone', 'surl', 'furl', 'curl', 'hash'];
+
+    // Validate required parameters exist
+    for (const param of requiredParams) {
+      if (!params[param]) {
+        console.warn(`Missing required PayU parameter: ${param}`);
+      }
+    }
+
+    Object.keys(params).forEach(key => {
+      const input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = key;
+      input.value = String(params[key] || ''); // Ensure value is string
+      form.appendChild(input);
+    });
+
+    // Append form to body and submit
+    document.body.appendChild(form);
+
+    console.log('Submitting PayU form with parameters:', Object.keys(params));
+    form.submit();
+
+    // Clean up after a short delay to ensure form submission
+    setTimeout(() => {
+      if (document.body.contains(form)) {
+        document.body.removeChild(form);
+      }
+    }, 1000);
+
+  } catch (error) {
+    console.error('Error submitting PayU form:', error);
+    throw error;
+  }
+};
+
+// Record a purchased course (after payment success) - kept for backward compatibility
 export const purchaseCourse = async (payload: {
   courseId: string;
   amount: number;
@@ -128,9 +117,4 @@ export const purchaseCourse = async (payload: {
   }
 };
 
-// Declare Razorpay type for TypeScript
-declare global {
-  interface Window {
-    Razorpay: any;
-  }
-}
+
