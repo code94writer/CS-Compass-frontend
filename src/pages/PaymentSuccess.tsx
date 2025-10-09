@@ -61,13 +61,8 @@ const PaymentSuccess: React.FC = () => {
   }, [searchParams]);
 
   const handleViewCourse = () => {
-    // Extract course ID from localStorage or payment details
-    const courseId = localStorage.getItem('currentCourseId');
-    if (courseId) {
-      navigate(`/pdf/${courseId}`);
-    } else {
-      navigate('/my-courses');
-    }
+    // Always redirect to my-courses page after successful payment
+    navigate('/my-courses');
   };
 
   const handleGoHome = () => {

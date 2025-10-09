@@ -51,13 +51,8 @@ const PaymentFailure: React.FC = () => {
   }, [searchParams]);
 
   const handleRetryPayment = () => {
-    // Extract course ID from localStorage or payment details
-    const courseId = localStorage.getItem('currentCourseId');
-    if (courseId) {
-      navigate(`/pdf/${courseId}`);
-    } else {
-      navigate('/courses');
-    }
+    // Redirect to courses page after payment failure
+    navigate('/courses');
   };
 
   const handleGoHome = () => {

@@ -62,7 +62,13 @@ export const submitPayUForm = (paymentUrl: string, paymentParams: any, merchantK
     form.target = '_self'; // Ensure form submits in the same window
 
     // Add all payment parameters as hidden inputs
-    const params = { ...paymentParams, key: merchantKey };
+    const params = {
+      ...paymentParams,
+      key: merchantKey,
+      // Restrict payment methods to UPI, Credit Cards, and Debit Cards only
+      // This hides net banking, wallets, EMI, and other payment options
+      pg: 'CC|DC|UPI'
+    };
 
     // Required PayU parameters
     const requiredParams = ['txnid', 'amount', 'productinfo', 'firstname', 'email', 'phone', 'surl', 'furl', 'curl', 'hash'];
