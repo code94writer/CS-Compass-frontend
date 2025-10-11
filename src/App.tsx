@@ -20,7 +20,10 @@ import Upload from './pages/Upload';
 import PaymentSuccess from './pages/PaymentSuccess';
 import PaymentFailure from './pages/PaymentFailure';
 import PaymentCancel from './pages/PaymentCancel';
-
+import Settings from './pages/Settings';
+import CategoryManagement from './pages/CategoryManagement';
+import CoursesManagement from './pages/CoursesManagement';
+import PDFsManagement from './pages/PDFsManagement';
 const theme = createTheme({
   palette: {
     primary: {
@@ -48,6 +51,38 @@ function App() {
                   element={
                     <ProtectedRoute requireAdmin>
                       <AdminDashboard />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/admin/settings"
+                  element={
+                    <ProtectedRoute requireAdmin>
+                      <Settings />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/admin/settings/categories"
+                  element={
+                    <ProtectedRoute requireAdmin>
+                      <CategoryManagement />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/admin/settings/courses"
+                  element={
+                    <ProtectedRoute requireAdmin>
+                      <CoursesManagement />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/admin/settings/pdfs"
+                  element={
+                    <ProtectedRoute requireAdmin>
+                      <PDFsManagement />
                     </ProtectedRoute>
                   }
                 />

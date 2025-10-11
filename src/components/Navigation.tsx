@@ -16,6 +16,7 @@ import {
   Upload as UploadIcon,
   Logout as LogoutIcon,
   AdminPanelSettings as AdminIcon,
+  Settings as SettingsIcon,
   ShoppingCart as CartIcon,
 } from '@mui/icons-material';
 import { useAuth } from '../context/AuthContext';
@@ -77,7 +78,7 @@ const Navigation: React.FC = () => {
           <Button
             component={Link}
             to="/courses"
-            color="inherit"
+            color="inherit"            
             startIcon={<SchoolIcon />}
             sx={{ textTransform: 'none' }}
           >
@@ -107,6 +108,15 @@ const Navigation: React.FC = () => {
               </Button>
               <Button
                 component={Link}
+                to="/admin/settings"
+                color="inherit"
+                startIcon={<SettingsIcon />}
+                sx={{ textTransform: 'none' }}
+              >
+                {!isMobile && 'Settings'}
+              </Button>
+              <Button
+                component={Link}
                 to="/upload"
                 color="inherit"
                 startIcon={<UploadIcon />}
@@ -121,7 +131,6 @@ const Navigation: React.FC = () => {
               component={Link}
               to="/admin"
               color="inherit"
-              startIcon={<AdminIcon />}
               sx={{ textTransform: 'none' }}
             >
               {!isMobile && 'Admin Login'}
