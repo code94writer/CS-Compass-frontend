@@ -130,20 +130,37 @@ const Courses: React.FC = () => {
               >
                 <CardContent sx={{ flexGrow: 1 }}>
                   <Box display="flex" alignItems="center" mb={2}>
-                    <Box
-                      sx={{
-                        width: 48,
-                        height: 48,
-                        bgcolor: 'error.light',
-                        borderRadius: 1,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        mr: 2,
-                      }}
-                    >
-                      <PdfIcon sx={{ color: 'error.main', fontSize: 24 }} />
-                    </Box>
+                    { (pdf as any)?.thumbnail_url ? (
+                      <Box
+                        component="img"
+                        src={(pdf as any).thumbnail_url}
+                        alt={`${pdf.name} thumbnail`}
+                        sx={{
+                          width: 48,
+                          height: 48,
+                          objectFit: 'cover',
+                          borderRadius: 1,
+                          mr: 2,
+                          border: '1px solid',
+                          borderColor: 'divider',
+                        }}
+                      />
+                    ) : (
+                      <Box
+                        sx={{
+                          width: 48,
+                          height: 48,
+                          bgcolor: 'error.light',
+                          borderRadius: 1,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          mr: 2,
+                        }}
+                      >
+                        <PdfIcon sx={{ color: 'error.main', fontSize: 24 }} />
+                      </Box>
+                    )}
                     <Chip
                       label={new Date(pdf.created_at).toLocaleDateString()}
                       size="small"

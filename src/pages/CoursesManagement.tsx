@@ -26,11 +26,12 @@ import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import RestoreIcon from '@mui/icons-material/Restore';
+import ImageIcon from '@mui/icons-material/Image';
 import { toast } from 'react-toastify';
 import { getPDFs } from '../api/pdf';
 import { isApiSuccess } from '../util/helper';
 import { getCategories } from '../api/categories';
-import { createCourse, updateCourse, CoursePayload, deactivateCourse, reactivateCourse } from '../api/courses';
+import { createCourse, updateCourse, CoursePayload, deactivateCourse, reactivateCourse, uploadCourseThumbnail, deleteCourseThumbnail } from '../api/courses';
 
 interface CategoryOption { id: string; name: string; }
 
@@ -70,6 +71,10 @@ const CoursesManagement: React.FC = () => {
 
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [reactivateId, setReactivateId] = useState<string | null>(null);
+  const [thumbCourseId, setThumbCourseId] = useState<string | null>(null);
+  const [thumbFile, setThumbFile] = useState<File | null>(null);
+  const [thumbModalOpen, setThumbModalOpen] = useState<boolean>(false);
+  const [thumbDeleteId, setThumbDeleteId] = useState<string | null>(null);
 
   const loadCategories = async () => {
     try {
@@ -78,6 +83,53 @@ const CoursesManagement: React.FC = () => {
       setCategories(cats.map((c: any) => ({ id: c.id, name: c.name })));
     } catch (e) {
       // non-blocking
+    }
+  };
+
+  const openThumbModal = (courseId: string) => {
+    setThumbCourseId(courseId);
+    setThumbFile(null);
+    setThumbModalOpen(true);
+  };
+
+  const closeThumbModal = () => {
+    setThumbModalOpen(false);
+    setThumbCourseId(null);
+    setThumbFile(null);
+  };
+
+  const handleUploadThumbnail = async () => {
+    if (!thumbCourseId || !thumbFile) {
+      toast.warn('Please choose a thumbnail image');
+      return;
+    }
+    try {
+      const res: any = await uploadCourseThumbnail(thumbCourseId, thumbFile);
+      if (isApiSuccess(res)) {
+        toast.success('Thumbnail uploaded');
+        closeThumbModal();
+        await loadCourses();
+      } else {
+        toast.error(res?.data?.message || 'Failed to upload thumbnail');
+      }
+    } catch (e: any) {
+      toast.error(e?.response?.data?.message || 'Failed to upload thumbnail');
+    }
+  };
+
+  const confirmDeleteThumbnail = async () => {
+    if (!thumbDeleteId) return;
+    try {
+      const res: any = await deleteCourseThumbnail(thumbDeleteId);
+      if (isApiSuccess(res)) {
+        toast.success('Thumbnail deleted');
+        setThumbDeleteId(null);
+        await loadCourses();
+      } else {
+        toast.error(res?.data?.message || 'Failed to delete thumbnail');
+      }
+    } catch (e: any) {
+      toast.error(e?.response?.data?.message || 'Failed to delete thumbnail');
     }
   };
 
@@ -217,6 +269,12 @@ const CoursesManagement: React.FC = () => {
               <TableCell align="right">
                 <IconButton aria-label="edit" onClick={() => openEditModal(c)}>
                   <EditIcon />
+                </IconButton>
+                <IconButton aria-label="upload-thumbnail" color="secondary" onClick={() => openThumbModal(c.id)} title="Upload Thumbnail">
+                  <ImageIcon />
+                </IconButton>
+                <IconButton aria-label="delete-thumbnail" color="warning" onClick={() => setThumbDeleteId(c.id)} title="Delete Thumbnail">
+                  <ImageIcon />
                 </IconButton>
                 {c.is_active===true ? (
                   <IconButton aria-label="deactivate" color="error" onClick={() => setDeleteId(c.id)}>
@@ -373,6 +431,46 @@ const CoursesManagement: React.FC = () => {
         <DialogActions>
           <Button onClick={() => setReactivateId(null)}>Cancel</Button>
           <Button color="primary" variant="contained" onClick={confirmReactivate}>Reactivate</Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Upload Thumbnail Modal */}
+      <Dialog open={thumbModalOpen} onClose={closeThumbModal} fullWidth maxWidth="xs">
+        <DialogTitle>Upload Course Thumbnail</DialogTitle>
+        <DialogContent>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
+            <Button component="label" variant="outlined">
+              {thumbFile ? thumbFile.name : 'Choose Image'}
+              <input
+                type="file"
+                accept="image/*"
+                hidden
+                onChange={(e) => {
+                  const f = e.target.files?.[0] || null;
+                  setThumbFile(f);
+                }}
+              />
+            </Button>
+            {!thumbFile && (
+              <Typography variant="caption" color="text.secondary">Select an image file to upload</Typography>
+            )}
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={closeThumbModal}>Cancel</Button>
+          <Button variant="contained" onClick={handleUploadThumbnail} disabled={!thumbFile}>Upload</Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Delete Thumbnail Confirmation */}
+      <Dialog open={!!thumbDeleteId} onClose={() => setThumbDeleteId(null)}>
+        <DialogTitle>Delete Thumbnail</DialogTitle>
+        <DialogContent>
+          <Typography>Are you sure you want to delete this course's thumbnail?</Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setThumbDeleteId(null)}>Cancel</Button>
+          <Button color="warning" variant="contained" onClick={confirmDeleteThumbnail}>Delete</Button>
         </DialogActions>
       </Dialog>
     </Box>

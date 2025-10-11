@@ -203,20 +203,37 @@ const PDFDetail: React.FC = () => {
       <Paper elevation={3} sx={{ p: 4 }}>
         <Box display="flex" alignItems="flex-start" justifyContent="space-between" mb={4}>
           <Box display="flex" alignItems="center">
-            <Box
-              sx={{
-                width: 64,
-                height: 64,
-                bgcolor: 'error.light',
-                borderRadius: 2,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                mr: 3,
-              }}
-            >
-              <PdfIcon sx={{ color: 'error.main', fontSize: 32 }} />
-            </Box>
+            { (pdf as any)?.thumbnail_url ? (
+              <Box
+                component="img"
+                src={(pdf as any).thumbnail_url}
+                alt={`${pdf.name} thumbnail`}
+                sx={{
+                  width: 64,
+                  height: 64,
+                  objectFit: 'cover',
+                  borderRadius: 2,
+                  mr: 3,
+                  border: '1px solid',
+                  borderColor: 'divider',
+                }}
+              />
+            ) : (
+              <Box
+                sx={{
+                  width: 64,
+                  height: 64,
+                  bgcolor: 'error.light',
+                  borderRadius: 2,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  mr: 3,
+                }}
+              >
+                <PdfIcon sx={{ color: 'error.main', fontSize: 32 }} />
+              </Box>
+            )}
             <Box>
               <Typography variant="h3" component="h1" gutterBottom>
                 {pdf.name}
@@ -360,7 +377,16 @@ const PDFDetail: React.FC = () => {
                   <Card variant="outlined">
                     <CardContent>
                       <Box display="flex" alignItems="center" mb={1}>
-                        <PdfIcon sx={{ color: 'error.main', mr: 1 }} />
+                        { (item as any)?.thumbnail_url ? (
+                          <Box
+                            component="img"
+                            src={(item as any).thumbnail_url}
+                            alt={`${item.title || item.name} thumbnail`}
+                            sx={{ width: 32, height: 32, objectFit: 'cover', borderRadius: 1, mr: 1, border: '1px solid', borderColor: 'divider' }}
+                          />
+                        ) : (
+                          <PdfIcon sx={{ color: 'error.main', mr: 1 }} />
+                        )}
                         <Typography variant="h6">{item.title || item.name}</Typography>
                       </Box>
                       {item.description && (

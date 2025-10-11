@@ -37,3 +37,38 @@ export const reactivateCourse = async (id: string) => {
   const res = await AxiosInstance.post(`/admin/courses/${id}/reactivate`);
   return res;
 };
+
+export const uploadCourseThumbnail = async (courseId: string, file: File) => {
+  try {
+    const form = new FormData();
+    // Try with 'thumbnail' key
+    form.append('thumbnail', file, file.name);
+    const res = await AxiosInstance.post(`/admin/courses/${courseId}/thumbnail`, form, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+      maxBodyLength: Infinity,
+    });
+    return res;
+  } catch (e: any) {
+    // Fallback: some servers expect 'file'
+    try {
+      const form2 = new FormData();
+      form2.append('file', file, file.name);
+      const res2 = await AxiosInstance.post(`/admin/courses/${courseId}/thumbnail`, form2, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+        maxBodyLength: Infinity,
+      });
+      return res2;
+    } catch (e2: any) {
+      return e2?.response || e?.response;
+    }
+  }
+};
+
+export const deleteCourseThumbnail = async (courseId: string) => {
+  try {
+    const res = await AxiosInstance.delete(`/admin/courses/${courseId}/thumbnail`);
+    return res;
+  } catch (e: any) {
+    return e?.response;
+  }
+};
