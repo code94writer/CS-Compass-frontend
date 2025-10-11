@@ -270,10 +270,10 @@ const CoursesManagement: React.FC = () => {
                 <IconButton aria-label="edit" onClick={() => openEditModal(c)}>
                   <EditIcon />
                 </IconButton>
-                <IconButton aria-label="upload-thumbnail" color="secondary" onClick={() => openThumbModal(c.id)} title="Upload Thumbnail">
+                <IconButton aria-label="upload-thumbnail" color="primary" onClick={() => openThumbModal(c.id)} title="Upload Thumbnail">
                   <ImageIcon />
                 </IconButton>
-                <IconButton aria-label="delete-thumbnail" color="warning" onClick={() => setThumbDeleteId(c.id)} title="Delete Thumbnail">
+                <IconButton aria-label="delete-thumbnail" color="error" onClick={() => setThumbDeleteId(c.id)} title="Delete Thumbnail">
                   <ImageIcon />
                 </IconButton>
                 {c.is_active===true ? (
