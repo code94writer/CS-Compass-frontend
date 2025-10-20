@@ -32,19 +32,20 @@ export const createCoursePDF = async (courseId: string, file: File, title: strin
     return res;
   } catch (e: any) {
     // Fallback: some backends expect 'file' instead of 'pdf'
-    try {
-      const form2 = new FormData();
-      form2.append('file', file, file.name);
-      form2.append('title', title);
-      if (description) form2.append('description', description);
-      const res2 = await AxiosInstance.post(`/admin/courses/${courseId}/pdfs`, form2, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-        maxBodyLength: Infinity,
-      });
-      return res2;
-    } catch (e2: any) {
-      return e2?.response || e?.response;
-    }
+    // try {
+    //   const form2 = new FormData();
+    //   form2.append('file', file, file.name);
+    //   form2.append('title', title);
+    //   if (description) form2.append('description', description);
+    //   const res2 = await AxiosInstance.post(`/admin/courses/${courseId}/pdfs`, form2, {
+    //     headers: { 'Content-Type': 'multipart/form-data' },
+    //     maxBodyLength: Infinity,
+    //   });
+    //   return res2;
+    // } catch (e2: any) {
+    //   return e2?.response || e?.response;
+    // }
+    console.log(e);
   }
 };
 

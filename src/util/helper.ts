@@ -1,26 +1,40 @@
-interface ApiResponse {
-    message?: string;
-    status?: number;
-    success?: boolean;
-    timestamp?: string;
-  }
+import { AxiosResponse } from "axios";
+
   
-  interface AxiosResponse {
-    data?: ApiResponse;
-    [key: string]: any;
-  }
-  
-  export const  isApiSuccess=(response: AxiosResponse | ApiResponse): boolean => {
-    try {
-      // Case 1: Axios style response with data wrapper
-      if ("data" in response && response.data) {
-        return response.data.success === true && response.data.message === "Success";
+  interface ApiResponse {
+  success?: boolean;
+  message?: string;
+  [key: string]: any;
+}
+
+export const isApiSuccess = (response: AxiosResponse | ApiResponse): boolean => {
+  try {
+    const data = "data" in response ? response.data : response;
+
+    // If API explicitly returns success flag
+    if (data.success === true) return true;
+
+    // If HTTP status code indicates success (for Axios responses)
+    if ("status" in response && response.status >= 200 && response.status < 300)
+      return true;
+
+    // If message indicates success (case-insensitive)
+    if (typeof data.message === "string") {
+      const msg = data.message.toLowerCase();
+      if (
+        msg.includes("success") ||
+        msg.includes("uploaded") ||
+        msg.includes("updated") ||
+        msg.includes("deleted") ||
+        msg.includes("created")
+      ) {
+        return true;
       }
-  
-      // Case 2: Direct API response object
-      return response.success === true && response.message === "Success";
-    } catch {
-      return false;
     }
+
+    return false;
+  } catch {
+    return false;
   }
+};
   
