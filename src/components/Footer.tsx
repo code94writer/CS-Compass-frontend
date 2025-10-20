@@ -100,7 +100,7 @@ const Footer: React.FC = () => {
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, justifyContent: { xs: 'center', md: 'flex-start' } }}>
                 <EmailIcon sx={{ mr: 1, fontSize: 20 }} />
                 <Typography variant="body2">
-                enquiry.IASCompass@gmail.com
+                enquiry.iascompass@gmail.com
                 </Typography>
               </Box>
             </Box>

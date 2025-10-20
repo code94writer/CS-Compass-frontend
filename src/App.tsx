@@ -16,7 +16,6 @@ import Home from './pages/Home';
 import Courses from './pages/Courses';
 import MyCourses from './pages/MyCourses';
 import PDFDetail from './pages/PDFDetail';
-import Upload from './pages/Upload';
 import PaymentSuccess from './pages/PaymentSuccess';
 import PaymentFailure from './pages/PaymentFailure';
 import PaymentCancel from './pages/PaymentCancel';
@@ -97,14 +96,6 @@ function App() {
                   }
                 />
                 <Route path="/pdf/:id" element={<PDFDetail />} />
-                <Route
-                  path="/upload"
-                  element={
-                    <ProtectedRoute requireAdmin>
-                      <Upload />
-                    </ProtectedRoute>
-                  }
-                />
                 {/* Payment callback routes */}
                 <Route path="/payment/success" element={<PaymentSuccess />} />
                 <Route path="/payment/failure" element={<PaymentFailure />} />

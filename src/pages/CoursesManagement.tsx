@@ -21,6 +21,7 @@ import {
   TableRow,
   Paper,
   Stack,
+  Avatar,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
@@ -31,7 +32,7 @@ import { toast } from 'react-toastify';
 import { getPDFs } from '../api/pdf';
 import { isApiSuccess } from '../util/helper';
 import { getCategories } from '../api/categories';
-import { createCourse, updateCourse, CoursePayload, deactivateCourse, reactivateCourse, uploadCourseThumbnail, deleteCourseThumbnail } from '../api/courses';
+import { createCourse, updateCourse, CoursePayload, deactivateCourse, reactivateCourse, uploadCourseThumbnail, deleteCourseThumbnail, getCourseThumbnailUrl } from '../api/courses';
 
 interface CategoryOption { id: string; name: string; }
 
@@ -171,7 +172,7 @@ const CoursesManagement: React.FC = () => {
       price: c.price ?? 0,
       discount: c.discount ?? 0,
       offer: c.offer || {},
-      expiry: c.expiry ? c.expiry : '',
+      expiry: c.expiry ? c.expiry : undefined,
     });
     setModalOpen(true);
   };
@@ -202,6 +203,7 @@ const CoursesManagement: React.FC = () => {
       if (editingId) {
         await updateCourse(editingId, {
           ...form,
+          expiry: form.expiry ? form.expiry : undefined,
           price: Number(form.price),
           discount: Number(form.discount),
           offer: form.offer || {},
@@ -210,6 +212,7 @@ const CoursesManagement: React.FC = () => {
       } else {
         await createCourse({
           ...form,
+          expiry: form.expiry ? form.expiry : undefined,
           price: Number(form.price),
           discount: Number(form.discount),
           offer: form.offer || {},
@@ -252,6 +255,7 @@ const CoursesManagement: React.FC = () => {
       <Table size="medium">
         <TableHead>
           <TableRow>
+            <TableCell>Thumbnail</TableCell>
             <TableCell>Name</TableCell>
             <TableCell>Description</TableCell>
             <TableCell>Price</TableCell>
@@ -262,6 +266,20 @@ const CoursesManagement: React.FC = () => {
         <TableBody>
           {courses.map((c) => (
             <TableRow hover key={c.id}>
+              <TableCell>
+                <Avatar
+                  src={getCourseThumbnailUrl(c.id)}
+                  alt={c.name}
+                  variant="rounded"
+                  sx={{ width: 56, height: 56 }}
+                  imgProps={{
+                    onError: (e: any) => {
+                      e.target.src = '/images/dummyPdf.jpg';
+                      e.target.onerror = null;
+                    },
+                  }}
+                />
+              </TableCell>
               <TableCell sx={{ fontWeight: 600 }}>{c.name}</TableCell>
               <TableCell>{c.description}</TableCell>
               <TableCell>₹{c.price ?? '-'}</TableCell>
@@ -395,10 +413,10 @@ const CoursesManagement: React.FC = () => {
             <TextField
               label="Expiry"
               type="datetime-local"
-              value={expiryValue(form.expiry)}
+              value={expiryValue(form?.expiry||'')}
               onChange={(e) => {
                 const val = e.target.value; // yyyy-MM-ddTHH:mm
-                setForm((s) => ({ ...s, expiry: val ? new Date(val).toISOString() : '' }));
+                setForm((s) => ({ ...s, expiry: val ? new Date(val).toISOString() : undefined }));
               }}
               fullWidth
             />

@@ -8,7 +8,7 @@ export interface CoursePayload {
   price: number;
   discount: number;
   offer: Record<string, any>;
-  expiry: string; // ISO datetime
+  expiry?: string; // ISO datetime
 }
 
 export const createCourse = async (payload: CoursePayload) => {
@@ -71,4 +71,9 @@ export const deleteCourseThumbnail = async (courseId: string) => {
   } catch (e: any) {
     return e?.response;
   }
+};
+
+export const getCourseThumbnailUrl = (courseId: string): string => {
+  const baseURL = process.env.REACT_APP_API_URL || 'https://api.civilservicescompass.com/api';
+  return `${baseURL}/courses/${courseId}/thumbnail`;
 };

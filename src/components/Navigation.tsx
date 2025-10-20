@@ -13,7 +13,6 @@ import {
 import {
   Home as HomeIcon,
   School as SchoolIcon,
-  Upload as UploadIcon,
   Logout as LogoutIcon,
   AdminPanelSettings as AdminIcon,
   Settings as SettingsIcon,
@@ -61,7 +60,7 @@ const Navigation: React.FC = () => {
           />
           {!isMobile && (
             <Typography variant="h6" component="div" sx={{ fontWeight: 'bold' }}>
-              Learning Platform
+             Civil Services Compass
             </Typography>
           )}
         </Box>
@@ -106,7 +105,7 @@ const Navigation: React.FC = () => {
               >
                 {!isMobile && 'Admin'}
               </Button>
-              <Button
+              {/* <Button
                 component={Link}
                 to="/admin/settings"
                 color="inherit"
@@ -114,16 +113,7 @@ const Navigation: React.FC = () => {
                 sx={{ textTransform: 'none' }}
               >
                 {!isMobile && 'Settings'}
-              </Button>
-              <Button
-                component={Link}
-                to="/upload"
-                color="inherit"
-                startIcon={<UploadIcon />}
-                sx={{ textTransform: 'none' }}
-              >
-                {!isMobile && 'Upload'}
-              </Button>
+              </Button> */}
             </>
           )}
           {/* {!isAdmin && (

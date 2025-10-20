@@ -21,19 +21,26 @@ import {
   PictureAsPdf as PdfIcon,
   People as UsersIcon,
   Assessment as StatsIcon,
+  DisabledByDefault as DisabledIcon,
   Add as AddIcon,
+  Download as DownloadIcon,
+  CurrencyRupee as RevenueIcon,
 } from '@mui/icons-material';
 import { getPDFs } from '../api/pdf';
 import { I_PDF } from '../types';
 import { isApiSuccess } from '../util/helper';
+import Settings from './Settings';
+import { getAdminStatistics, PlatformStatistics } from '../api/statistics';
 
 const AdminDashboard: React.FC = () => {
   const [pdfs, setPdfs] = useState<I_PDF[]>([]);
   const [loading, setLoading] = useState(true);
+  const [statistics, setStatistics] = useState<PlatformStatistics | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
     fetchPDFs();
+    fetchStatistics();
   }, []);
 
   const fetchPDFs = async () => {
@@ -52,30 +59,43 @@ const AdminDashboard: React.FC = () => {
     }
   };
 
+  const fetchStatistics = async () => {
+    try {
+      const response = await getAdminStatistics();
+      if (isApiSuccess(response)) {
+        setStatistics(response.data.data);
+      } else {
+        console.error('Failed to fetch statistics');
+      }
+    } catch (error) {
+      console.error('Error fetching statistics:', error);
+    }
+  };
+
   const stats = [
     {
-      title: 'Total Courses',
-      value: pdfs.length,
-      icon: <PdfIcon sx={{ fontSize: 40, color: 'primary.main' }} />,
+      title: 'Active Courses',
+      value: statistics ? statistics.activeCourses : 0,
+      icon: <StatsIcon sx={{ fontSize: 30, color: 'primary.main' }} />,
       color: 'primary.main',
     },
     {
       title: 'Active Users',
-      value: '1,234', // Mock data
-      icon: <UsersIcon sx={{ fontSize: 40, color: 'success.main' }} />,
+      value: statistics?.activeUsers || 0,
+      icon: <UsersIcon sx={{ fontSize: 30, color: 'success.main' }} />,
       color: 'success.main',
     },
     {
-      title: 'Total Downloads',
-      value: '5,678', // Mock data
-      icon: <StatsIcon sx={{ fontSize: 40, color: 'warning.main' }} />,
-      color: 'warning.main',
+      title: 'In-Active Courses',
+      value: statistics?.nonActiveCourses || 0,
+      icon: <DisabledIcon sx={{ fontSize: 30, color: 'error.main' }} />,
+      color: 'error.main',
     },
     {
       title: 'Revenue',
-      value: '₹12,345', // Mock data
-      icon: <AdminIcon sx={{ fontSize: 40, color: 'error.main' }} />,
-      color: 'error.main',
+      value: statistics ? `₹${statistics.totalRevenue.toLocaleString('en-IN')}` : '₹0',
+      icon: <RevenueIcon sx={{ fontSize: 30, color: 'warning.main' }} />,
+      color: 'warning.main',
     },
   ];
 
@@ -109,38 +129,7 @@ const AdminDashboard: React.FC = () => {
         </Typography>
       </Box>
 
-      {/* Quick Actions */}
-      <Paper elevation={2} sx={{ p: 3, mb: 4 }}>
-        <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold' }}>
-          Quick Actions
-        </Typography>
-        <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={() => navigate('/upload')}
-            sx={{ px: 3 }}
-          >
-            Upload New Course
-          </Button>
-          <Button
-            variant="outlined"
-            startIcon={<UploadIcon />}
-            onClick={() => navigate('/upload')}
-            sx={{ px: 3 }}
-          >
-            Manage Uploads
-          </Button>
-          <Button
-            variant="outlined"
-            startIcon={<StatsIcon />}
-            onClick={() => navigate('/admin/analytics')}
-            sx={{ px: 3 }}
-          >
-            View Analytics
-          </Button>
-        </Box>
-      </Paper>
+    
 
       {/* Statistics */}
       <Box mb={4}>
@@ -184,8 +173,44 @@ const AdminDashboard: React.FC = () => {
         )}
       </Box>
 
+  {/* Quick Actions */}
+  <Paper elevation={2} sx={{ p: 3, mb: 4 }}>
+        <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold' }}>
+          Manage Courses
+        </Typography>
+
+        <Settings />
+        
+        {/* <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={() => navigate('/upload')}
+            sx={{ px: 3 }}
+          >
+            Upload New Course
+          </Button>
+          <Button
+            variant="outlined"
+            startIcon={<UploadIcon />}
+            onClick={() => navigate('/upload')}
+            sx={{ px: 3 }}
+          >
+            Manage Uploads
+          </Button>
+          <Button
+            variant="outlined"
+            startIcon={<StatsIcon />}
+            onClick={() => navigate('/admin/analytics')}
+            sx={{ px: 3 }}
+          >
+            View Analytics
+          </Button>
+        </Box> */}
+      </Paper>
+
       {/* Recent Courses */}
-      <Box>
+      {/* <Box>
         <Typography variant="h5" gutterBottom sx={{ fontWeight: 'bold', mb: 3 }}>
           Recent Courses
         </Typography>
@@ -261,9 +286,6 @@ const AdminDashboard: React.FC = () => {
                       </Typography>
                     )}
                     
-                    <Typography variant="caption" color="text.secondary">
-                      {/* {(pdf.size / 1024 / 1024).toFixed(1)} MB */}
-                    </Typography>
                   </CardContent>
                   
                   <CardActions>
@@ -286,7 +308,7 @@ const AdminDashboard: React.FC = () => {
             ))}
           </Grid>
         )}
-      </Box>
+      </Box> */}
     </Container>
   );
 };

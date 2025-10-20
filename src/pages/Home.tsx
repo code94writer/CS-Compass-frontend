@@ -79,66 +79,8 @@ const Home: React.FC = () => {
       >
         <Container maxWidth="lg">
           <Grid container spacing={4} alignItems="center">
-            <Grid item xs={12} md={6}>
-              <Box sx={{ textAlign: { xs: 'center', md: 'left' } }}>
-                <Typography
-                  variant={isMobile ? 'h3' : 'h2'}
-                  component="h1"
-                  gutterBottom
-                  sx={{ fontWeight: 'bold', mb: 3 }}
-                >
-                  Welcome to Our Learning Platform
-                </Typography>
-                <Typography
-                  variant={isMobile ? 'h6' : 'h5'}
-                  component="p"
-                  sx={{ mb: 4, opacity: 0.9, lineHeight: 1.6 }}
-                >
-                  Access premium course materials, download PDF resources, and enhance your learning experience with our comprehensive educational platform.
-                </Typography>
-                <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', justifyContent: { xs: 'center', md: 'flex-start' } }}>
-                  <Button
-                    variant="contained"
-                    size="large"
-                    onClick={handleGetStarted}
-                    sx={{
-                      bgcolor: 'white',
-                      color: 'primary.main',
-                      px: 4,
-                      py: 1.5,
-                      fontSize: '1.1rem',
-                      fontWeight: 'bold',
-                      '&:hover': {
-                        bgcolor: 'grey.100',
-                        transform: 'translateY(-2px)',
-                      },
-                      transition: 'all 0.3s ease',
-                    }}
-                  >
-                    View Courses
-                  </Button>
-                  <Button
-                    variant="outlined"
-                    size="large"
-                    onClick={() => navigate('/courses')}
-                    sx={{
-                      borderColor: 'white',
-                      color: 'white',
-                      px: 4,
-                      py: 1.5,
-                      fontSize: '1.1rem',
-                      '&:hover': {
-                        borderColor: 'white',
-                        bgcolor: 'rgba(255,255,255,0.1)',
-                      },
-                    }}
-                  >
-                    Browse Courses
-                  </Button>
-                </Box>
-              </Box>
-            </Grid>
-            <Grid item xs={12} md={6}>
+
+          <Grid item xs={12} md={6}>
               <Box
                 sx={{
                   display: 'flex',
@@ -160,6 +102,59 @@ const Home: React.FC = () => {
                 />
               </Box>
             </Grid>
+
+            <Grid item xs={12} md={6}>
+              <Box sx={{ textAlign: { xs: 'center', md: 'left' } }}>
+              <Typography
+                  variant={isMobile ? 'h5' : 'h4'}
+                  component="h3"
+                  gutterBottom
+                  sx={{ fontWeight: 'medium',fontStyle: 'italic',textDecoration: 'underline', mb: 3 }}
+                >
+                 Navigating Towards Success
+                </Typography> 
+
+                <Typography
+                  variant={isMobile ? 'h3' : 'h2'}
+                  component="h1"
+                  gutterBottom
+                  sx={{ fontWeight: 'bold', mb: 3 }}
+                >
+                 Aspirants Centric, Veterans Led
+                </Typography>
+                <Typography
+                  variant={isMobile ? 'h6' : 'h5'}
+                  component="p"
+                  sx={{ mb: 4, opacity: 0.9, lineHeight: 1.6 }}
+                >
+                 Join us to Navigate Your Path to Success
+                     </Typography>
+                <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', justifyContent: { xs: 'center', md: 'flex-start' } }}>
+                  <Button
+                    variant="contained"
+                    size="large"
+                    onClick={handleGetStarted}
+                    sx={{
+                      bgcolor: 'white',
+                      color: 'primary.main',
+                      px: 4,
+                      py: 1.5,
+                      fontSize: '1.1rem',
+                      fontWeight: 'bold',
+                      '&:hover': {
+                        bgcolor: 'grey.100',
+                        transform: 'translateY(-2px)',
+                      },
+                      transition: 'all 0.3s ease',
+                    }}
+                  >
+                   Explore Our Courses
+                  </Button>
+                 
+                </Box>
+              </Box>
+            </Grid>
+           
           </Grid>
         </Container>
       </Box>
