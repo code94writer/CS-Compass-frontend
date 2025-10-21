@@ -17,8 +17,6 @@ import {
 } from '@mui/material';
 import {
   PictureAsPdf as PdfIcon,
-  Download as DownloadIcon,
-  Visibility as ViewIcon,
 } from '@mui/icons-material';
 import { getPDFs } from '../api/pdf';
 import { I_PDF } from '../types';
@@ -183,23 +181,43 @@ const Courses: React.FC = () => {
                     </Typography>
                   )}
                   
-                  {/* <Typography variant="caption" color="text.secondary">
-                    {(pdf.price / 1024 / 1024).toFixed(1)} MB
-                  </Typography> */}
+                  {/* Pricing with Discount */}
+                  <Box sx={{ mt: 'auto', pt: 2 }}>
+                    {Number(pdf.discount || 0) > 0 ? (
+                      <Box>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+                          <Typography variant="h6" component="div" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
+                            ₹{(Number(pdf.price) * (1 - Number(pdf.discount) / 100)).toFixed(2)}
+                          </Typography>
+                          <Typography 
+                            variant="body2" 
+                            sx={{ 
+                              textDecoration: 'line-through', 
+                              color: 'text.secondary'
+                            }}
+                          >
+                            ₹{Number(pdf.price).toFixed(2)}
+                          </Typography>
+                        </Box>
+                        <Chip 
+                          label={`${Number(pdf.discount).toFixed(0)}% OFF`}
+                          size="small"
+                          sx={{ 
+                            bgcolor: 'error.main',
+                            color: 'white',
+                            fontWeight: 'bold',
+                            height: 20,
+                            fontSize: '0.7rem'
+                          }}
+                        />
+                      </Box>
+                    ) : (
+                      <Typography variant="h6" component="div" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
+                        ₹{Number(pdf.price || 0).toFixed(2)}
+                      </Typography>
+                    )}
+                  </Box>
                 </CardContent>
-                
-                <CardActions>
-                  <Button
-                    size="small"
-                    startIcon={<ViewIcon />}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handlePDFClick(pdf.id);
-                    }}
-                  >
-                    View Details
-                  </Button>
-                </CardActions>
               </Card>
             </Grid>
           ))}

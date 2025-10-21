@@ -55,6 +55,19 @@ export const downloadPDF = async (id: string): Promise<Blob> => {
   }
 };
 
+export const downloadCoursePDF = async (courseId: string, pdfId: string): Promise<Blob> => {
+  try {
+    // GET /api/courses/{courseId}/download/{pdfId}
+    const response = await AxiosInstance.get(`/courses/${courseId}/download/${pdfId}`, {
+      responseType: 'blob',
+    });
+    return response.data as Blob;
+  } catch (error: any) {
+    console.error('downloadCoursePDF error', error);
+    throw error;
+  }
+};
+
 // Fetch purchased PDFs for authenticated user
 export const getPurchasedPDFs = async (): Promise<{ data: I_PurchasedPDF[] }> => {
   try {

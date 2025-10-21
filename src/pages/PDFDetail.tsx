@@ -21,7 +21,7 @@ import {
   Close as CloseIcon,
   ShoppingCart as CartIcon,
 } from '@mui/icons-material';
-import { getPDFById, downloadPDF, isPDFPurchased } from '../api/pdf';
+import { getPDFById, downloadPDF, isPDFPurchased, downloadCoursePDF } from '../api/pdf';
 import { I_PDF } from '../types';
 import OTPLogin from '../components/OTPLogin';
 import { processPayUPayment } from '../api/payment';
@@ -35,6 +35,7 @@ const PDFDetail: React.FC = () => {
   const [pdf, setPdf] = useState<I_PDF | null>(null);
   const [loading, setLoading] = useState(true);
   const [downloading, setDownloading] = useState(false);
+  const [downloadingPdfId, setDownloadingPdfId] = useState<string | null>(null);
   const [showOTPLogin, setShowOTPLogin] = useState(false);
   const [processingPayment, setProcessingPayment] = useState(false);
   const [purchased, setPurchased] = useState(false);
@@ -47,7 +48,8 @@ const PDFDetail: React.FC = () => {
   }, [id]);
 
   useEffect(() => {
-    if (pdf && isAuthenticated && userToken) {
+    // Only check purchase status if not already set from API
+    if (pdf && isAuthenticated && userToken && pdf.isPurchased === undefined) {
       checkIfPurchased();
     }
   }, [pdf, isAuthenticated, userToken]);
@@ -56,7 +58,12 @@ const PDFDetail: React.FC = () => {
     try {
       const response:any = await getPDFById(id!);
       if (isApiSuccess(response)) {
-        setPdf(response.data.data);
+        const pdfData = response.data.data;
+        setPdf(pdfData);
+        // Use isPurchased from API response if available
+        if (pdfData.isPurchased !== undefined) {
+          setPurchased(pdfData.isPurchased);
+        }
       } else {
         toast.error('Failed to fetch PDF details');
         navigate('/');
@@ -306,7 +313,7 @@ const PDFDetail: React.FC = () => {
             <Card variant="outlined">
               <CardContent>
                 <Typography variant="h6" component="h3" gutterBottom>
-                  {checkingPurchase ? 'Checking...' : purchased ? 'Download' : isAdmin ? 'Admin' : 'Purchase'}
+                  {checkingPurchase ? 'Checking...' : purchased ? 'Course Status' : isAdmin ? 'Admin' : 'Purchase'}
                 </Typography>
                 {checkingPurchase ? (
                   <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 4 }}>
@@ -316,31 +323,63 @@ const PDFDetail: React.FC = () => {
                     </Typography>
                   </Box>
                 ) : purchased ? (
-                  <Button
-                    variant="contained"
-                    fullWidth
-                    size="large"
-                    startIcon={downloading ? <CircularProgress size={20} color="inherit" /> : <DownloadIcon />}
-                    onClick={handleDownload}
-                    disabled={downloading}
-                    sx={{ mt: 2 }}
-                  >
-                    {downloading ? 'Downloading...' : 'Download PDF'}
-                  </Button>
+                  <Box sx={{ py: 2 }}>
+                    <Typography variant="body1" color="success.main" sx={{ fontWeight: 'bold', textAlign: 'center' }}>
+                      ✓ Purchased
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', mt: 1 }}>
+                      Download PDFs below
+                    </Typography>
+                  </Box>
                 ) : (
                   <Box>
                     {/* Hide purchase option for admins */}
                     {!isAdmin && (
                       <>
                         <Box sx={{ mb: 2, p: 2, bgcolor: 'grey.50', borderRadius: 1 }}>
-                          <Typography variant="h5" component="div" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
-                            ₹99
-                          </Typography>
-                          <Typography variant="body2" color="text.secondary">
-                            One-time purchase
-                          </Typography>
+                          {pdf && Number(pdf.discount || 0) > 0 ? (
+                            <>
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                                <Typography variant="h5" component="div" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
+                                  ₹{(Number(pdf.price) * (1 - Number(pdf.discount) / 100)).toFixed(2)}
+                                </Typography>
+                                <Typography 
+                                  variant="body1" 
+                                  sx={{ 
+                                    textDecoration: 'line-through', 
+                                    color: 'text.secondary',
+                                    fontWeight: 'medium'
+                                  }}
+                                >
+                                  ₹{Number(pdf.price).toFixed(2)}
+                                </Typography>
+                              </Box>
+                              <Chip 
+                                label={`${Number(pdf.discount).toFixed(0)}% OFF`}
+                                size="small"
+                                sx={{ 
+                                  bgcolor: 'error.main',
+                                  color: 'white',
+                                  fontWeight: 'bold',
+                                  mb: 1
+                                }}
+                              />
+                              <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                                One-time purchase
+                              </Typography>
+                            </>
+                          ) : (
+                            <>
+                              <Typography variant="h5" component="div" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
+                                ₹{pdf?.price || 0}
+                              </Typography>
+                              <Typography variant="body2" color="text.secondary">
+                                One-time purchase
+                              </Typography>
+                            </>
+                          )}
                         </Box>
-                        <Button
+                        { !purchased && Number(pdf?.price)>0 && <Button
                           variant="contained"
                           fullWidth
                           size="large"
@@ -349,7 +388,7 @@ const PDFDetail: React.FC = () => {
                           sx={{ mt: 2 }}
                         >
                           Purchase PDF
-                        </Button>
+                        </Button>}
                         <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block', textAlign: 'center' }}>
                           Secure payment with OTP verification
                         </Typography>
@@ -390,7 +429,7 @@ const PDFDetail: React.FC = () => {
                         <Typography variant="h6">{item.title || item.name}</Typography>
                       </Box>
                       {item.description && (
-                        <Typography variant="body2" color="text.secondary">
+                        <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
                           {item.description}
                         </Typography>
                       )}
@@ -403,6 +442,40 @@ const PDFDetail: React.FC = () => {
                         <Typography variant="caption" color="text.secondary" display="block">
                           Uploaded: {new Date(item.created_at).toLocaleDateString()}
                         </Typography>
+                      )}
+                      {/* Download button for purchased courses */}
+                      {purchased && (
+                        <Button
+                          variant="contained"
+                          size="small"
+                          fullWidth
+                          startIcon={downloadingPdfId === item.id ? <CircularProgress size={16} color="inherit" /> : <DownloadIcon />}
+                          onClick={async () => {
+                            if (!pdf?.id) return;
+                            setDownloadingPdfId(item.id);
+                            try {
+                              const blob = await downloadCoursePDF(pdf.id, item.id);
+                              const url = window.URL.createObjectURL(blob);
+                              const link = document.createElement('a');
+                              link.href = url;
+                              link.download = `${item.title || item.name}.pdf`;
+                              document.body.appendChild(link);
+                              link.click();
+                              document.body.removeChild(link);
+                              window.URL.revokeObjectURL(url);
+                              toast.success('PDF downloaded successfully!');
+                            } catch (error) {
+                              console.error('Error downloading PDF:', error);
+                              toast.error('Failed to download PDF');
+                            } finally {
+                              setDownloadingPdfId(null);
+                            }
+                          }}
+                          disabled={downloadingPdfId === item.id}
+                          sx={{ mt: 2 }}
+                        >
+                          {downloadingPdfId === item.id ? 'Downloading...' : 'Download PDF'}
+                        </Button>
                       )}
                     </CardContent>
                   </Card>

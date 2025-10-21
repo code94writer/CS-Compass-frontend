@@ -170,7 +170,7 @@ const MyCourses: React.FC = () => {
                   },
                 }}
               >
-                <CardContent sx={{ flexGrow: 1 }}>
+                <CardContent sx={{ flexGrow: 1 }} onClick={() => handleViewDetails(pdf.id)}>
                   <Box display="flex" alignItems="center" mb={2}>
                     <Box
                       sx={{
@@ -210,9 +210,9 @@ const MyCourses: React.FC = () => {
                   )}
                   
                   <Box display="flex" justifyContent="space-between" alignItems="center" sx={{ mt: 2 }}>
-                    <Typography variant="h6" color="success.main" sx={{ fontWeight: 'bold' }}>
+                    {/* <Typography variant="h6" color="success.main" sx={{ fontWeight: 'bold' }}>
                       ₹{pdf.price}
-                    </Typography>
+                    </Typography> */}
                     <Typography variant="caption" color="text.secondary">
                       Purchased
                     </Typography>
@@ -220,14 +220,14 @@ const MyCourses: React.FC = () => {
                 </CardContent>
                 
                 <CardActions>
-                  <Button
+                  {/* <Button
                     size="small"
                     startIcon={<ViewIcon />}
                     onClick={() => handleViewDetails(pdf.id)}
                   >
                     View Details
-                  </Button>
-                  <Button
+                  </Button> */}
+                  {/* <Button
                     size="small"
                     variant="contained"
                     startIcon={downloading === pdf.id ? <CircularProgress size={16} color="inherit" /> : <DownloadIcon />}
@@ -235,7 +235,7 @@ const MyCourses: React.FC = () => {
                     disabled={downloading === pdf.id}
                   >
                     {downloading === pdf.id ? 'Downloading...' : 'Download'}
-                  </Button>
+                  </Button> */}
                 </CardActions>
               </Card>
             </Grid>

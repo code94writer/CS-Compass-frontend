@@ -21,6 +21,8 @@ export interface I_PDF {
     url: string;
     created_at: string;
     price: number;
+    discount?: number;
+    isPurchased?: boolean;
 }
 
 export interface I_UploadPDF {

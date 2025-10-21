@@ -33,11 +33,14 @@ AxiosInstance.interceptors.request.use(
 AxiosInstance.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    if (error.response?.status === 401 || error.response?.status === 403) {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       localStorage.removeItem('userToken');
-      // Do not hard redirect here; let route guards/pages decide navigation to avoid full reloads
+      localStorage.removeItem('userMobile');
+      localStorage.removeItem('currentCourseId');
+      // Redirect to home page on 403/401
+      window.location.href = '/';
     }
     return Promise.reject(error);
   }
